@@ -22,7 +22,7 @@ import java.io.File
 
 trait TestHelperStorage {
   // recursively delete a folder. should be built in. bad java.
-  private def deleteFolder(folder: File): Unit = {
+  def deleteFolder(folder: File): Unit = {
     for (f <- folder.listFiles) {
       if (f.isDirectory) {
         deleteFolder(f)

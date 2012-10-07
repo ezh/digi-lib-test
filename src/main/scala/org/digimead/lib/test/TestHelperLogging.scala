@@ -35,8 +35,9 @@ trait TestHelperLogging {
   val logSearchResult = new SyncVar[Record]()
   val logSubscriber = new LogSubscriber
 
-  def withLogging[T](map: Map[String, Any], appenders: Seq[Appender] = Seq(Console))(f: => T) {
-    val logAppenders: Seq[Appender] = if (map.contains("log") || System.getProperty("log") != null)
+  def isLogEnabled(config: Map[String, Any]) = config.contains("log") || System.getProperty("log") != null
+  def withLogging[T](config: Map[String, Any], appenders: Seq[Appender] = Seq(Console))(f: => T) {
+    val logAppenders: Seq[Appender] = if (isLogEnabled(config))
       appenders
     else
       Seq(NullAppender)

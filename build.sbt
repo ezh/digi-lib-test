@@ -27,7 +27,7 @@ description := "Various test helpers for Digi components"
 
 organization := "org.digimead"
 
-version := "0.1"
+version := "0.2-SNAPSHOT"
 
 crossScalaVersions := Seq("2.8.2", "2.9.0", "2.9.0-1", "2.9.1", "2.9.2")
 
