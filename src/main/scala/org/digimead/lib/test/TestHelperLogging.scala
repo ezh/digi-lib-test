@@ -20,6 +20,7 @@ package org.digimead.lib.test
 
 import java.util.concurrent.atomic.AtomicReference
 
+import scala.actors.Futures
 import scala.annotation.tailrec
 
 import org.digimead.digi.lib.log.Logging
@@ -30,8 +31,9 @@ import org.digimead.digi.lib.log.appender.NullAppender
 import org.digimead.digi.lib.util.SyncVar
 
 trait TestHelperLogging {
+  this: Logging =>
   val logHistory = new AtomicReference[Seq[Record]](Seq())
-  val logSearchFunction = new AtomicReference[(String, (String, String) => Boolean)](null)
+  val logSearchFunction = new AtomicReference[(String) => Boolean](null)
   val logSearchResult = new SyncVar[Record]()
   val logSubscriber = new LogSubscriber
 
@@ -50,31 +52,32 @@ trait TestHelperLogging {
       Logging.delAppender(logAppenders)
     }
   }
-  def assertLog(s: String, f: (String, String) => Boolean)(implicit timeout: Long): Record = {
+  def assertLog(f: (String, String) => Boolean, arg: String = "")(implicit timeout: Long): Record = {
     logSubscriber.synchronized {
-      searchLogHistory(s, f, logHistory.getAndSet(Seq())) match {
+      Futures.future { log.___glance("assert log \"%s\"".format(arg.trim)) }
+      searchLogHistory(f(_, arg), logHistory.getAndSet(Seq())) match {
         case Some((record, otherRecords)) =>
           logHistory.set(otherRecords)
           logSearchFunction.set(null)
           logSearchResult.unset()
           return record
         case None =>
-          logSearchFunction.set(s, f)
+          logSearchFunction.set(f(_, arg))
           logSearchResult.unset()
       }
     }
     val result = logSearchResult.get(timeout)
-    assert(result != None, "log record \"" + s + "\" not found")
+    assert(result != None, if (arg == "") "log record not found" else "log record \"" + arg.trim + "\" not found")
     result.get
   }
   @tailrec
-  final def searchLogHistory(s: String, f: (String, String) => Boolean, history: Seq[Record]): Option[(Record, Seq[Record])] = {
+  final def searchLogHistory(f: (String) => Boolean, history: Seq[Record]): Option[(Record, Seq[Record])] = {
     history match {
       case x :: xs =>
-        if (f(x.message.trim, s.trim))
+        if (f(x.message.trim))
           return Some(x, xs)
         else
-          searchLogHistory(s, f, xs)
+          searchLogHistory(f, xs)
       case Nil =>
         None
     }
@@ -86,10 +89,10 @@ trait TestHelperLogging {
           logSearchFunction.get match {
             case null =>
               logHistory.set(logHistory.get :+ event.record)
-            case (message, f) if event.record.message == null =>
+            case f if event.record.message == null =>
             // skip, offline logHistory is useless, we are online
-            case (message, f) if f != null && message != null && event.record.message != null =>
-              if (f(event.record.message.trim, message.trim)) {
+            case f =>
+              if (f(event.record.message.trim)) {
                 logHistory.set(Seq())
                 logSearchFunction.set(null)
                 logSearchResult.put(event.record, 60000)

@@ -74,9 +74,9 @@ resolvers += "digi-lib-util" at "http://ezh.github.com/digi-lib-util/releases"
 
 libraryDependencies ++= {
   Seq(
-    "org.digimead" %% "digi-lib" % "0.2",
-    "org.digimead" %% "digi-lib-util" % "0.2",
-    "org.digimead" %% "digi-lib-slf4j" % "0.1",
+    "org.digimead" %% "digi-lib" % "0.2.1-SNAPSHOT",
+    "org.digimead" %% "digi-lib-util" % "0.2.1-SNAPSHOT",
+    "org.digimead" %% "digi-lib-slf4j" % "0.2-SNAPSHOT",
     "org.scalatest" %% "scalatest" % "1.8"
   )
 }
