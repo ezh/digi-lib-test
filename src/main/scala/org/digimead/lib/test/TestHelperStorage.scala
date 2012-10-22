@@ -20,11 +20,10 @@ package org.digimead.lib.test
 
 import java.io.File
 
-import org.digimead.digi.lib.log.Logging
+import org.digimead.digi.lib.log.Loggable
 import org.digimead.digi.lib.log.logger.RichLogger.rich2slf4j
 
-trait TestHelperStorage {
-  this: Logging =>
+trait TestHelperStorage extends Loggable {
   // recursively delete a folder. should be built in. bad java.
   def deleteFolder(folder: File): Unit = {
     assert(folder != null, "folder must be non-null")

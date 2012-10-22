@@ -12,7 +12,7 @@ DOCUMENTATION
 
 ```scala
 libraryDependencies += Seq(
-  "org.digimead" %% "digi-lib-test" % "0.2"
+  "org.digimead" %% "digi-lib-test" % "VERSION"
 )
 
 resolvers += "digi-lib-test" at "http://ezh.github.com/digi-lib-test/releases"
