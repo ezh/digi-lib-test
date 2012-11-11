@@ -31,7 +31,8 @@ import org.digimead.digi.lib.log.appender.Appender
 import org.digimead.digi.lib.log.appender.Console
 import org.digimead.digi.lib.log.appender.NullAppender
 import org.digimead.digi.lib.util.SyncVar
-import org.scala_tools.subcut.inject.NewBindingModule
+
+import com.escalatesoft.subcut.inject.NewBindingModule
 
 trait TestHelperLogging extends Loggable {
   val logHistory = new AtomicReference[Seq[Record.Message]](Seq())
