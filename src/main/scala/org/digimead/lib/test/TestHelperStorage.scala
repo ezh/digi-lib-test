@@ -1,7 +1,7 @@
 /**
  * Digi-Lib-Test - various test helpers for Digi components
  *
- * Copyright (c) 2012 Alexey Aksenov ezh@ezh.msk.ru
+ * Copyright (c) 2012-2013 Alexey Aksenov ezh@ezh.msk.ru
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ trait TestHelperStorage extends Loggable {
   // recursively delete a folder. should be built in. bad java.
   def deleteFolder(folder: File): Unit = {
     assert(folder != null, "folder must be non-null")
-    for (f <- Option(folder.listFiles) getOrElse { log.warn("folder %s not exists ot not file".format(folder)); Array() }) {
+    for (f <- Option(folder.listFiles) getOrElse { log.warn("folder %s not exists ot not file".format(folder)); Array[File]() }) {
       if (f.isDirectory) {
         deleteFolder(f)
       } else {

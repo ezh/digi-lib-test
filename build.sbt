@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2012 Alexey Aksenov ezh@ezh.msk.ru
+// Copyright (c) 2012-2013 Alexey Aksenov ezh@ezh.msk.ru
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,11 +21,11 @@ organization := "org.digimead"
 
 version <<= (baseDirectory) { (b) => scala.io.Source.fromFile(b / "version").mkString.trim }
 
-scalaVersion := "2.9.2"
+crossScalaVersions := Seq("2.10.1")
 
-crossScalaVersions := Seq("2.8.2", "2.9.0", "2.9.0-1", "2.9.1", "2.9.2")
+scalaVersion := "2.10.1"
 
-scalacOptions ++= Seq("-encoding", "UTF-8", "-deprecation", "-unchecked", "-Xcheckinit") ++
+scalacOptions ++= Seq("-encoding", "UTF-8", "-deprecation", "-unchecked", "-Xcheckinit", "-feature") ++
   (if (true || (System getProperty "java.runtime.version" startsWith "1.7")) Seq() else Seq("-optimize")) // -optimize fails with jdk7
 
 javacOptions ++= Seq("-Xlint:unchecked", "-Xlint:deprecation")
@@ -47,10 +47,11 @@ moduleConfigurations := {
 
 libraryDependencies ++= {
   Seq(
-    "org.digimead" %% "digi-lib" % "0.2.1-SNAPSHOT",
-    "org.digimead" %% "digi-lib-util" % "0.2.1-SNAPSHOT",
-    "org.digimead" %% "digi-lib-slf4j" % "0.2-SNAPSHOT",
-    "org.scalatest" %% "scalatest" % "1.8"
+    "org.digimead" %% "digi-lib" % "0.2.2-SNAPSHOT",
+    "org.digimead" %% "digi-lib-util" % "0.2.2-SNAPSHOT",
+    "org.digimead" %% "digi-lib-slf4j" % "0.2.1-SNAPSHOT",
+    "org.scalatest" %% "scalatest" % "1.9.1" excludeAll(ExclusionRule(organization = "org.scala-lang")),
+    "org.scala-lang" % "scala-actors" % "2.10.1"
   )
 }
 

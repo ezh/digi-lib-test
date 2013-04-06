@@ -1,7 +1,7 @@
 /**
  * Digi-Lib-Test - various test helpers for Digi components
  *
- * Copyright (c) 2012 Alexey Aksenov ezh@ezh.msk.ru
+ * Copyright (c) 2012-2013 Alexey Aksenov ezh@ezh.msk.ru
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,10 +53,20 @@ trait TestHelperLogging extends Loggable {
   }
   def isLogEnabled(config: Map[String, Any]) = config.contains("log") || System.getProperty("log") != null
   def withLogging[T](config: Map[String, Any])(f: => T) {
+    log // prevent a dead lock
     Logging.Event.subscribe(logSubscriber)
     f // do testing
     Logging.Event.removeSubscription(logSubscriber)
   }
+  /**
+   * Assert that log exists in log history
+   *
+   * Example assertLog(_ startsWith _, "hello ")
+   * Asserts that history contains "hello "...
+   *
+   * @param f (log string, argument) => result
+   * @param arg assertion argument
+   */
   def assertLog(f: (String, String) => Boolean, arg: String = "")(implicit timeout: Long): Record.Message = {
     logSubscriber.synchronized {
       Futures.future { log.___glance("assert log \"%s\"".format(arg.trim)) }
