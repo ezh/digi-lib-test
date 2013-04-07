@@ -62,4 +62,4 @@ Please check the individual source files for details.
 Copyright
 ---------
 
-Copyright © 2012 Alexey B. Aksenov/Ezh. All rights reserved.
+Copyright © 2012-2013 Alexey B. Aksenov/Ezh. All rights reserved.

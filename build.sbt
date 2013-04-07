@@ -50,7 +50,8 @@ libraryDependencies ++= {
     "org.digimead" %% "digi-lib" % "0.2.2-SNAPSHOT",
     "org.digimead" %% "digi-lib-util" % "0.2.2-SNAPSHOT",
     "org.digimead" %% "digi-lib-slf4j" % "0.2.1-SNAPSHOT",
-    "org.scalatest" %% "scalatest" % "1.9.1" excludeAll(ExclusionRule(organization = "org.scala-lang")),
+    "org.scalatest" %% "scalatest" % "1.9.1"
+      excludeAll(ExclusionRule("org.scala-lang", "scala-reflect"), ExclusionRule("org.scala-lang", "scala-actors")),
     "org.scala-lang" % "scala-actors" % "2.10.1"
   )
 }
