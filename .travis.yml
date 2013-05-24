@@ -1,0 +1,7 @@
+---
+language: scala
+script: "sbt coveralls test"
+jdk:
+- openjdk6
+scala:
+- 2.9.2

@@ -1,7 +1,7 @@
 /**
  * Digi-Lib-Test - various test helpers for Digi components
  *
- * Copyright (c) 2012 Alexey Aksenov ezh@ezh.msk.ru
+ * Copyright (c) 2012-2013 Alexey Aksenov ezh@ezh.msk.ru
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,11 @@ package org.digimead.lib.test
 
 import java.util.concurrent.atomic.AtomicReference
 
+import scala.actors.Futures
 import scala.annotation.tailrec
+import scala.collection.immutable.HashSet
 
+import org.digimead.digi.lib.log.Loggable
 import org.digimead.digi.lib.log.Logging
 import org.digimead.digi.lib.log.Record
 import org.digimead.digi.lib.log.appender.Appender
@@ -29,69 +32,86 @@ import org.digimead.digi.lib.log.appender.Console
 import org.digimead.digi.lib.log.appender.NullAppender
 import org.digimead.digi.lib.util.SyncVar
 
-trait TestHelperLogging {
-  val logHistory = new AtomicReference[Seq[Record]](Seq())
-  val logSearchFunction = new AtomicReference[(String, (String, String) => Boolean)](null)
-  val logSearchResult = new SyncVar[Record]()
+import com.escalatesoft.subcut.inject.NewBindingModule
+
+trait TestHelperLogging extends Loggable {
+  val logHistory = new AtomicReference[Seq[Record.Message]](Seq())
+  val logSearchFunction = new AtomicReference[(String) => Boolean](null)
+  val logSearchResult = new SyncVar[Record.Message]()
   val logSubscriber = new LogSubscriber
 
-  def withLogging[T](map: Map[String, Any], appenders: Seq[Appender] = Seq(Console))(f: => T) {
-    val logAppenders: Seq[Appender] = if (map.contains("log") || System.getProperty("log") != null)
+  def defaultConfig(config: Map[String, Any], appenders: Seq[Appender] = Seq(Console)) = {
+    val logAppenders: Seq[Appender] = if (isLogEnabled(config))
       appenders
     else
       Seq(NullAppender)
-    try {
-      Logging.addAppender(logAppenders)
-      Logging.Event.subscribe(logSubscriber)
-      f // do testing
-      Logging.Event.removeSubscription(logSubscriber)
-    } finally {
-      Logging.delAppender(logAppenders)
-    }
+    val base = org.digimead.digi.lib.log.slf4j.default ~ org.digimead.digi.lib.default
+    val custom = new NewBindingModule(module => {
+      module.bind[HashSet[Appender]] identifiedBy "Log.BufferedAppenders" toSingle { HashSet[Appender](logAppenders: _*) }
+    })
+    custom ~ base
   }
-  def assertLog(s: String, f: (String, String) => Boolean)(implicit timeout: Long): Record = {
+  def isLogEnabled(config: Map[String, Any]) = config.contains("log") || System.getProperty("log") != null
+  def withLogging[T](config: Map[String, Any])(f: => T) {
+    log // prevent a dead lock
+    Logging.Event.subscribe(logSubscriber)
+    f // do testing
+    Logging.Event.removeSubscription(logSubscriber)
+  }
+  /**
+   * Assert that log exists in log history
+   *
+   * Example assertLog(_ startsWith _, "hello ")
+   * Asserts that history contains "hello "...
+   *
+   * @param f (log string, argument) => result
+   * @param arg assertion argument
+   */
+  def assertLog(f: (String, String) => Boolean, arg: String = "")(implicit timeout: Long): Record.Message = {
     logSubscriber.synchronized {
-      searchLogHistory(s, f, logHistory.getAndSet(Seq())) match {
+      Futures.future { log.___glance("assert log \"%s\"".format(arg.trim)) }
+      searchLogHistory(f(_, arg), logHistory.getAndSet(Seq())) match {
         case Some((record, otherRecords)) =>
           logHistory.set(otherRecords)
           logSearchFunction.set(null)
           logSearchResult.unset()
           return record
         case None =>
-          logSearchFunction.set(s, f)
+          logSearchFunction.set(f(_, arg))
           logSearchResult.unset()
       }
     }
     val result = logSearchResult.get(timeout)
-    assert(result != None, "log record \"" + s + "\" not found")
+    assert(result != None, if (arg == "") "log record not found" else "log record \"" + arg.trim + "\" not found")
     result.get
   }
   @tailrec
-  final def searchLogHistory(s: String, f: (String, String) => Boolean, history: Seq[Record]): Option[(Record, Seq[Record])] = {
+  final def searchLogHistory(f: (String) => Boolean, history: Seq[Record.Message]): Option[(Record.Message, Seq[Record.Message])] = {
     history match {
       case x :: xs =>
-        if (f(x.message.trim, s.trim))
+        if (f(x.message.trim))
           return Some(x, xs)
         else
-          searchLogHistory(s, f, xs)
+          searchLogHistory(f, xs)
       case Nil =>
         None
     }
   }
   class LogSubscriber extends Logging.Event.Sub {
-    def notify(pub: Logging.Event.Pub, event: Logging.Event) = synchronized {
+    val lock = new Object
+    def notify(pub: Logging.Event.Pub, event: Logging.Event) = lock.synchronized {
       event match {
         case event: Logging.Event.Outgoing =>
           logSearchFunction.get match {
             case null =>
               logHistory.set(logHistory.get :+ event.record)
-            case (message, f) if event.record.message == null =>
+            case f if event.record.message == null =>
             // skip, offline logHistory is useless, we are online
-            case (message, f) if f != null && message != null && event.record.message != null =>
-              if (f(event.record.message.trim, message.trim)) {
+            case f =>
+              if (f(event.record.message.trim)) {
                 logHistory.set(Seq())
                 logSearchFunction.set(null)
-                logSearchResult.put(event.record, 60000)
+                logSearchResult.set(event.record)
               }
           }
         case _ =>

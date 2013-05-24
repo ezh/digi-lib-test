@@ -12,7 +12,7 @@ DOCUMENTATION
 
 ```scala
 libraryDependencies += Seq(
-  "org.digimead" %% "digi-lib-test" % "0.2"
+  "org.digimead" %% "digi-lib-test" % "VERSION"
 )
 
 resolvers += "digi-lib-test" at "http://ezh.github.com/digi-lib-test/releases"
@@ -62,4 +62,4 @@ Please check the individual source files for details.
 Copyright
 ---------
 
-Copyright © 2012 Alexey B. Aksenov/Ezh. All rights reserved.
+Copyright © 2012-2013 Alexey B. Aksenov/Ezh. All rights reserved.
