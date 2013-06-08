@@ -12,6 +12,7 @@ DOCUMENTATION
 
 ```scala
 libraryDependencies += "org.digimead" %% "digi-lib-test" % "0.2.2.1"
+```
 
 Maven repository
 
