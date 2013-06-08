@@ -11,16 +11,19 @@ DOCUMENTATION
 ### Setup
 
 ```scala
-libraryDependencies += Seq(
-  "org.digimead" %% "digi-lib-test" % "0.2.2.1"
-)
+libraryDependencies += "org.digimead" %% "digi-lib-test" % "0.2.2.1"
 
-resolvers += "digimead-maven" at "http://storage.googleapis.com/maven.repository.digimead.org/" 
+Maven repository
 
-resolvers += Resolver.url("digimead-ivy", url("http://storage.googleapis.com/ivy.repository.digimead.org/"))(Resolver.defaultIvyPatterns)
+```scala
+resolvers += "digimead-maven" at "http://storage.googleapis.com/maven.repository.digimead.org/"
 ```
 
-### [API (latest version)](http://ezh.github.com/digi-lib-test/api/)
+Ivy repository
+
+```scala
+resolvers += Resolver.url("digimead-ivy", url("http://storage.googleapis.com/ivy.repository.digimead.org/"))(Resolver.defaultIvyPatterns)
+```
 
 ## Target platform
 

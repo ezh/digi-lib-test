@@ -60,6 +60,8 @@ if (sys.env.contains("XBOOTCLASSPATH")) Seq(javacOptions += "-Xbootclasspath:" +
 // Custom local options
 //
 
+resolvers += "digimead-maven" at "http://storage.googleapis.com/maven.repository.digimead.org/"
+
 libraryDependencies ++= Seq(
     "com.googlecode.pojosr" % "de.kalpatec.pojosr.framework.bare" % "0.2.1",
     "org.mockito" % "mockito-core" % "1.9.5",
