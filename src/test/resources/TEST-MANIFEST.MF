@@ -1,0 +1,39 @@
+Manifest-Version: 1.0
+Export-Package: org.digimead.lib.test;uses:="de.kalpatec.pojosr.framew
+ ork.launch,org.apache.log4j,org.apache.log4j.spi,org.mockito,org.mock
+ ito.verification,org.osgi.framework,org.scalatest,org.scalatest.mock,
+ org.slf4j,scala,scala.collection,scala.collection.immutable,scala.ref
+ lect,scala.runtime"
+Implementation-Title: Digi-Lib-Test
+Implementation-Version: 0.2.2.1-SNAPSHOT
+Specification-Vendor: org.digimead
+Tool: Bnd-2.1.0.20130426-122213
+Bundle-Name: Digi-Lib-Test
+Created-By: 1.6.0_38 (Sun Microsystems Inc.)
+Implementation-URL: https://github.com/ezh/digi-lib-test
+Bundle-Copyright: Copyright © 2011-2013 Alexey B. Aksenov/Ezh. All ri
+ ghts reserved.
+Implementation-Vendor: org.digimead
+Bundle-Vendor: org.digimead
+Implementation-Vendor-Id: org.digimead
+Bundle-Version: 0.2.2.1-SNAPSHOT
+Bnd-LastModified: 1370521040281
+Specification-Title: Digi-Lib-Test
+Bundle-ManifestVersion: 2
+Bundle-Description: Various test helpers for Digi components
+Bundle-License: http://www.apache.org/licenses/LICENSE-2.0.txt;descrip
+ tion=The Apache Software License, Version 2.0
+Specification-Version: 0.2.2.1-SNAPSHOT
+Import-Package: de.kalpatec.pojosr.framework.launch,org.apache.log4j;v
+ ersion="[1.2,2)",org.apache.log4j.spi;version="[1.2,2)",org.apache.lo
+ g4j.varia;version="[1.2,2)",org.mockito;version="[1.9,2)",org.mockito
+ .verification;version="[1.9,2)",org.osgi.framework;version="[1.6,2)",
+ org.scalatest;version="[1.9,2)",org.scalatest.exceptions;version="[1.
+ 9,2)",org.scalatest.mock;version="[1.9,2)",org.slf4j;version="[1.7,2)
+ ",scala;version="[2.10,3)",scala.collection;version="[2.10,3)",scala.
+ collection.convert;version="[2.10,3)",scala.collection.generic;versio
+ n="[2.10,3)",scala.collection.immutable;version="[2.10,3)",scala.coll
+ ection.mutable;version="[2.10,3)",scala.reflect;version="[2.10,3)",sc
+ ala.runtime;version="[2.10,3)"
+Bundle-SymbolicName: org.digimead.digi.lib.test
+

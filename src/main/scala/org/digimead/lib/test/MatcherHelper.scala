@@ -20,11 +20,11 @@ package org.digimead.lib.test
 
 import org.scalatest.exceptions.TestFailedException
 
-trait TestHelperMatchers {
-   def expectDefined(obj: Any)(test: PartialFunction[Any, Unit]) {
+trait MatcherHelper {
+  def expectDefined(obj: Any)(test: PartialFunction[Any, Unit]) {
     if (!test.isDefinedAt(obj)) {
       val t = new Throwable
-      throw new TestFailedException("unexpected argument " + obj + "\n" + t.getStackTraceString, 1)
+      throw new TestFailedException("Unexpected argument " + obj + "\n" + t.getStackTraceString, 1)
     }
-  } 
+  }
 }
