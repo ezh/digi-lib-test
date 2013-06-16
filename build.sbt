@@ -17,7 +17,7 @@
 
 import sbt.osgi.manager._
 
-activateOSGiManager ++ sbt.scct.ScctPlugin.instrumentSettings
+OSGiManager // ++ sbt.scct.ScctPlugin.instrumentSettings - ScctPlugin is broken, have no time to fix
 
 name := "Digi-Lib-Test"
 
@@ -29,7 +29,7 @@ organization := "org.digimead"
 
 organizationHomepage := Some(url("http://digimead.org"))
 
-homepage := Some(url("https://github.com/ezh/digi-lib-util"))
+homepage := Some(url("https://github.com/ezh/digi-lib-test"))
 
 version <<= (baseDirectory) { (b) => scala.io.Source.fromFile(b / "version").mkString.trim }
 
@@ -39,7 +39,7 @@ inConfig(OSGiConf)({
     osgiBndBundleSymbolicName := "org.digimead.digi.lib.test",
     osgiBndBundleCopyright := "Copyright © 2011-2013 Alexey B. Aksenov/Ezh. All rights reserved.",
     osgiBndExportPackage := List("org.digimead.*"),
-    osgiBndImportPackage := List("!org.aspectj.lang", "*"),
+    osgiBndImportPackage := List("!org.aspectj.*", "*"),
     osgiBndBundleLicense := "http://www.apache.org/licenses/LICENSE-2.0.txt;description=The Apache Software License, Version 2.0"
   )
 })
@@ -56,30 +56,25 @@ javacOptions ++= Seq("-Xlint:unchecked", "-Xlint:deprecation", "-source", "1.6",
 
 if (sys.env.contains("XBOOTCLASSPATH")) Seq(javacOptions += "-Xbootclasspath:" + sys.env("XBOOTCLASSPATH")) else Seq()
 
+//
+// Custom local options
+//
+
 resolvers += "digimead-maven" at "http://storage.googleapis.com/maven.repository.digimead.org/"
 
-moduleConfigurations := {
-  val digi = "digimead" at "http://storage.googleapis.com/maven.repository.digimead.org/"
-  Seq(
-    ModuleConfiguration("org.digimead", "digi-lib", digi),
-    ModuleConfiguration("org.digimead", "digi-lib-slf4j", digi),
-    ModuleConfiguration("org.digimead", "digi-lib-util", digi)
-  )
-}
-
 libraryDependencies ++= Seq(
-    "org.digimead" %% "digi-lib" % "0.2.3",
-    "org.digimead" %% "digi-lib-util" % "0.2.3",
-    "org.digimead" %% "digi-lib-slf4j" % "0.2.2",
-    "org.scala-lang" % "scala-actors" % "2.10.1",
+    "com.googlecode.pojosr" % "de.kalpatec.pojosr.framework.bare" % "0.2.1",
+    "org.mockito" % "mockito-core" % "1.9.5",
     "org.scalatest" %% "scalatest" % "1.9.1"
-      excludeAll(ExclusionRule("org.scala-lang", "scala-reflect"), ExclusionRule("org.scala-lang", "scala-actors"))
+      excludeAll(ExclusionRule("org.scala-lang", "scala-reflect"), ExclusionRule("org.scala-lang", "scala-actors")),
+    "org.slf4j" % "slf4j-log4j12" % "1.7.5",
+    "org.digimead" %% "digi-lib" % "0.2.3.2" % "test"
   )
+
+//
+// Testing
+//
 
 parallelExecution in Test := false
-
-parallelExecution in sbt.scct.ScctPlugin.ScctTest := false
-
-//sourceDirectory in Test <<= baseDirectory / "Testing Infrastructure Is Absent"
 
 //logLevel := Level.Debug

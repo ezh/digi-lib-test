@@ -20,14 +20,11 @@ package org.digimead.lib.test
 
 import java.io.File
 
-import org.digimead.digi.lib.log.Loggable
-import org.digimead.digi.lib.log.logger.RichLogger.rich2slf4j
-
-trait TestHelperStorage extends Loggable {
+trait StorageHelper {
   // recursively delete a folder. should be built in. bad java.
   def deleteFolder(folder: File): Unit = {
     assert(folder != null, "folder must be non-null")
-    for (f <- Option(folder.listFiles) getOrElse { log.warn("folder %s not exists ot not file".format(folder)); Array[File]() }) {
+    for (f <- Option(folder.listFiles) getOrElse { Helper.logwarn(getClass, "Folder %s not exists ot not file".format(folder)); Array[File]() }) {
       if (f.isDirectory) {
         deleteFolder(f)
       } else {

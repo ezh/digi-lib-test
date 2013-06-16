@@ -18,14 +18,17 @@
 
 package org.digimead.lib.test
 
-import scala.collection.mutable.Publisher
-
 import java.util.concurrent.atomic.AtomicReference
 
-import org.digimead.digi.lib.log.Loggable
+import scala.collection.mutable.Publisher
 
-trait EventPublisher[Event] extends Loggable {
+import org.slf4j.Logger
+
+import language.reflectiveCalls
+
+trait EventPublisher[Event] {
   this: Publisher[Event] =>
+
   protected val lastEvent = new AtomicReference[Event]()
 
   def nextEvent(timeout: Long, id: String = "nextEvent"): Option[Event] = {
@@ -54,13 +57,22 @@ trait EventPublisher[Event] extends Loggable {
    */
   protected def waitMeasuringElapsed(fName: String, timeout: Long): Long = if (timeout <= 0) 0 else {
     val start = System.currentTimeMillis
+    val log = Helper.getLogger(this)
     lastEvent.synchronized {
-      log.traceWhere(this + " " + fName + "(" + timeout + ") waiting", -4)
+      if (log.nonEmpty && Helper.containsMethod(log.get.getClass, "traceWhere", classOf[String], java.lang.Integer.TYPE))
+        log.asInstanceOf[{ def traceWhere(msg: String, stackLine: Int) }].
+          traceWhere(this + " " + fName + "(" + timeout + ") waiting", -4)
+      else
+        Helper.logtrace(this, this + " " + fName + "(" + timeout + ") waiting")
       lastEvent.wait(timeout)
     }
     val elapsed = System.currentTimeMillis - start
     val result = if (elapsed < 0) 0 else elapsed
-    log.traceWhere(this + " " + fName + "(" + timeout + ") running, reserve " + (timeout - result), -4)
+    if (log.nonEmpty && Helper.containsMethod(log.get.getClass, "traceWhere", classOf[String], java.lang.Integer.TYPE))
+      log.asInstanceOf[{ def traceWhere(msg: String, stackLine: Int) }].
+        traceWhere(this + " " + fName + "(" + timeout + ") running, reserve " + (timeout - result), -4)
+    else
+      Helper.logtrace(this, this + " " + fName + "(" + timeout + ") running, reserve " + (timeout - result))
     result
   }
 }
