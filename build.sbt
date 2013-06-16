@@ -17,7 +17,7 @@
 
 import sbt.osgi.manager._
 
-OSGiManager ++ sbt.scct.ScctPlugin.instrumentSettings
+OSGiManager // ++ sbt.scct.ScctPlugin.instrumentSettings - ScctPlugin is broken, have no time to fix
 
 name := "Digi-Lib-Test"
 
@@ -68,7 +68,7 @@ libraryDependencies ++= Seq(
     "org.scalatest" %% "scalatest" % "1.9.1"
       excludeAll(ExclusionRule("org.scala-lang", "scala-reflect"), ExclusionRule("org.scala-lang", "scala-actors")),
     "org.slf4j" % "slf4j-log4j12" % "1.7.5",
-    "org.digimead" %% "digi-lib" % "0.2.3.1" % "test"
+    "org.digimead" %% "digi-lib" % "0.2.3.2" % "test"
   )
 
 //
@@ -76,7 +76,5 @@ libraryDependencies ++= Seq(
 //
 
 parallelExecution in Test := false
-
-parallelExecution in sbt.scct.ScctPlugin.ScctTest := false
 
 //logLevel := Level.Debug
