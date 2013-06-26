@@ -28,7 +28,7 @@ resolvers += Resolver.url("digimead-ivy", url("http://storage.googleapis.com/ivy
 
 ## Target platform
 
-* Scala 2.10.1 (request for more if needed)
+* Scala 2.10.2 (request for more if needed)
 * JVM 1.6+
 
 ## Participate in the development ##
