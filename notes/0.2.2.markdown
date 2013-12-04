@@ -1,0 +1,3 @@
+The 0.2.2 release includes the following:
+
+* Log + OSGi + Storage + Matching

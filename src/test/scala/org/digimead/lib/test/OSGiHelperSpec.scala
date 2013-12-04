@@ -19,12 +19,13 @@
 package org.digimead.lib.test
 
 import org.digimead.digi.lib.DependencyInjection
+import org.scalatest.ConfigMap
+import org.scalatest.Matchers
 import org.scalatest.WordSpec
-import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.mock.MockitoSugar
 import org.slf4j.LoggerFactory
 
-class OSGiHelperSpec extends WordSpec with OSGiHelper with LoggingHelper with ShouldMatchers with MockitoSugar {
+class OSGiHelperSpec extends WordSpec with OSGiHelper with LoggingHelper with Matchers with MockitoSugar {
   val log = LoggerFactory.getLogger(getClass)
   val testBundleClass = classOf[OSGiHelper]
 
@@ -36,28 +37,29 @@ class OSGiHelperSpec extends WordSpec with OSGiHelper with LoggingHelper with Sh
     DependencyInjection(org.digimead.digi.lib.default, false)
     adjustLoggingBefore
     adjustOSGiBefore
+    osgiRegistry.foreach(_.start())
   }
 
   "OSGi framework" must {
     "running" in {
       val result = for {
-        context <- osgiContext
-        registry <- osgiRegistry
+        context ← osgiContext
+        registry ← osgiRegistry
       } yield {
         val framework = context.getBundle()
         val bundles = context.getBundles()
         bundles should contain(framework)
-        for (bundle <- bundles) {
+        for (bundle ← bundles) {
           log.info("Bundle id: %s, symbolic name: %s, location: %s".
             format(bundle.getBundleId(), bundle.getSymbolicName(), bundle.getLocation()))
           val refs = bundle.getRegisteredServices()
           if (refs != null) {
             log.info("There are " + refs.length + " provided services")
-            for (serviceReference <- refs) {
-              for (key <- serviceReference.getPropertyKeys()) {
+            for (serviceReference ← refs) {
+              for (key ← serviceReference.getPropertyKeys()) {
                 log.info("\t" + key + " = " + (serviceReference.getProperty(key) match {
-                  case arr: Array[_] => arr.mkString(",")
-                  case n => n.toString
+                  case arr: Array[_] ⇒ arr.mkString(",")
+                  case n ⇒ n.toString
                 }))
               }
               log.info("-----")
@@ -69,5 +71,5 @@ class OSGiHelperSpec extends WordSpec with OSGiHelper with LoggingHelper with Sh
     }
   }
 
-  override def beforeAll(configMap: Map[String, Any]) { adjustLoggingBeforeAll(configMap) }
+  override def beforeAll(configMap: ConfigMap) { adjustLoggingBeforeAll(configMap) }
 }

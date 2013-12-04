@@ -22,10 +22,10 @@ import org.digimead.digi.lib.DependencyInjection
 import org.digimead.digi.lib.log.api.Loggable
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.WordSpec
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.Matchers
 import org.slf4j.LoggerFactory
 
-class HelperSpec extends WordSpec with BeforeAndAfterAll with ShouldMatchers {
+class HelperSpec extends WordSpec with BeforeAndAfterAll with Matchers {
   DependencyInjection(org.digimead.digi.lib.default, false)
 
   "Helper" should {

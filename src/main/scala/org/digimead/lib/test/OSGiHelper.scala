@@ -30,9 +30,9 @@ import scala.collection.JavaConversions._
 import org.osgi.framework.BundleContext
 import org.osgi.framework.Constants
 
+import de.kalpatec.pojosr.framework.PojoSR
 import de.kalpatec.pojosr.framework.launch.BundleDescriptor
 import de.kalpatec.pojosr.framework.launch.ClasspathScanner
-import de.kalpatec.pojosr.framework.launch.PojoServiceRegistry
 import de.kalpatec.pojosr.framework.launch.PojoServiceRegistryFactory
 
 trait OSGiHelper {
@@ -44,13 +44,13 @@ trait OSGiHelper {
   /** The framework bundle Context */
   @volatile protected var osgiContext: Option[BundleContext] = None
   /** The registry used to register services */
-  @volatile protected var osgiRegistry: Option[PojoServiceRegistry] = None
+  @volatile protected var osgiRegistry: Option[PojoSR] = None
   /** PojoSR configuration */
   protected lazy val osgiConfig = {
     val config = new java.util.HashMap[AnyRef, AnyRef]()
     val allBundles = new ClasspathScanner().scanForBundles() // ArrayList[BundleDescriptor]
     allBundles.add(new BundleDescriptor(getClass.getClassLoader, getTestBundleURL(testBundleClass), getTestBundleHeaders))
-    val bundles: java.util.List[BundleDescriptor] = (for (bundle <- allBundles) yield {
+    val bundles: java.util.List[BundleDescriptor] = (for (bundle ← allBundles) yield {
       val bundleURL = bundle.getUrl()
       val bundleSymbolicName = bundle.getHeaders().get(Constants.BUNDLE_SYMBOLICNAME)
       if (bundleURL != null && bundleURL.toString.matches(osgiIgnoredBundlesURLPatterns)) {
@@ -91,7 +91,7 @@ trait OSGiHelper {
     osgiContext.map(_.getBundle().stop())
     // Wait after testing (the time for bundle to stop)
     Thread.sleep(osgiDelayBetweenTestInMs)
-    osgiCache.foreach { cache =>
+    osgiCache.foreach { cache ⇒
       Helper.loginfo(this, "Delete OSGi cache at " + cache.getCanonicalPath())
       cache.delete()
     }
@@ -102,7 +102,7 @@ trait OSGiHelper {
     // Set up the framework (configure Java and the OSGi environment).
     // Create a random unique cache dir for each test method
     osgiCache = Some(File.createTempFile("osgi-", "-cache"))
-    osgiCache.foreach { cache =>
+    osgiCache.foreach { cache ⇒
       cache.delete
       cache.mkdirs
       cache.deleteOnExit
@@ -113,8 +113,9 @@ trait OSGiHelper {
     // Initialize service registry
     val loader = ServiceLoader.load(classOf[PojoServiceRegistryFactory])
     // Build a new framework
-    osgiRegistry = Some(loader.iterator().next().newPojoServiceRegistry(osgiConfig))
-    osgiRegistry.map { registry =>
+    osgiRegistry = Some(new PojoSR(osgiConfig))
+    osgiRegistry.foreach(_.prepare())
+    osgiRegistry.map { registry ⇒
       // Keep a track of the fk bundle context
       osgiContext = Some(registry.getBundleContext())
       // Wait before testing (the time for bundle to start)
@@ -127,7 +128,7 @@ trait OSGiHelper {
     val testBundlePackageURL = try {
       getClass.getClassLoader.getResources(testBundlePackageClass).nextElement() // sure that we have one
     } catch {
-      case e: NoSuchElementException =>
+      case e: NoSuchElementException ⇒
         throw new IllegalArgumentException("Unable to find bundle with class %s.".format(testBundlePackageClass), e)
     }
     val externalForm = testBundlePackageURL.toExternalForm()
@@ -140,7 +141,7 @@ trait OSGiHelper {
     val testBundleManifestURL = try {
       getClass.getClassLoader.getResources(testBundleManifest).nextElement() // sure that we have one
     } catch {
-      case e: NoSuchElementException =>
+      case e: NoSuchElementException ⇒
         throw new IllegalArgumentException("Unable to find 'TEST-MANIFEST.MF' for OSGi testing.", e)
     }
     val headers = new java.util.HashMap[String, String]()
@@ -173,12 +174,12 @@ trait OSGiHelper {
       i = 0
       while (i < size) {
         bytes(i) match {
-          case '\r' if (i + 1 < size) && (bytes(i + 1) == '\n') =>
+          case '\r' if (i + 1 < size) && (bytes(i + 1) == '\n') ⇒
           // skip \r and \n if it is follows by another \n
           // (we catch the blank line case in the next iteration)
-          case '\n' if ((i + 1 < size) && (bytes(i + 1) == ' ')) =>
+          case '\n' if ((i + 1 < size) && (bytes(i + 1) == ' ')) ⇒
             i += 1 // skip space
-          case ':' if key == null =>
+          case ':' if key == null ⇒
             // If we don't have a key yet and see the first : we parse it as the key
             // and skip the :<blank> that follows it.
             key = new String(bytes, last, (current - last), "UTF-8")
@@ -188,7 +189,7 @@ trait OSGiHelper {
             } else {
               throw new Exception("Manifest error: Missing space separator - " + key)
             }
-          case '\n' =>
+          case '\n' ⇒
             if ((last == current) && (key == null)) {
               // if we are at the end of a line
               // and it is a blank line stop parsing (main attributes are done)
@@ -204,7 +205,7 @@ trait OSGiHelper {
               last = current
               key = null
             }
-          case _ =>
+          case _ ⇒
             // write back the byte if it needs to be included in the key or the value.
             if (current != i)
               bytes(current) = bytes(i)

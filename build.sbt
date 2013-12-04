@@ -19,7 +19,7 @@ import sbt.osgi.manager._
 
 OSGiManager // ++ sbt.scct.ScctPlugin.instrumentSettings - ScctPlugin is broken, have no time to fix
 
-name := "Digi-Lib-Test"
+name := "digi-lib-test"
 
 description := "Various test helpers for Digi components"
 
@@ -44,15 +44,17 @@ inConfig(OSGiConf)({
   )
 })
 
-crossScalaVersions := Seq("2.10.2")
+crossScalaVersions := Seq("2.10.3")
 
-scalaVersion := "2.10.2"
+scalaVersion := "2.10.3"
 
 scalacOptions ++= Seq("-encoding", "UTF-8", "-deprecation", "-unchecked", "-Xcheckinit", "-feature") ++
   (if (true || (System getProperty "java.runtime.version" startsWith "1.7")) Seq() else Seq("-optimize")) // -optimize fails with jdk7
 
 // http://vanillajava.blogspot.ru/2012/02/using-java-7-to-target-much-older-jvms.html
 javacOptions ++= Seq("-Xlint:unchecked", "-Xlint:deprecation", "-source", "1.6", "-target", "1.6")
+
+javacOptions in doc := Seq("-source", "1.6")
 
 if (sys.env.contains("XBOOTCLASSPATH")) Seq(javacOptions += "-Xbootclasspath:" + sys.env("XBOOTCLASSPATH")) else Seq()
 
@@ -63,9 +65,9 @@ if (sys.env.contains("XBOOTCLASSPATH")) Seq(javacOptions += "-Xbootclasspath:" +
 resolvers += "digimead-maven" at "http://storage.googleapis.com/maven.repository.digimead.org/"
 
 libraryDependencies ++= Seq(
-    "com.googlecode.pojosr" % "de.kalpatec.pojosr.framework.bare" % "0.2.1",
+    "org.digimead" %% "pojosrx" % "0.2.3.0-SNAPSHOT",
     "org.mockito" % "mockito-core" % "1.9.5",
-    "org.scalatest" %% "scalatest" % "1.9.1"
+    "org.scalatest" %% "scalatest" % "2.0"
       excludeAll(ExclusionRule("org.scala-lang", "scala-reflect"), ExclusionRule("org.scala-lang", "scala-actors")),
     "org.slf4j" % "slf4j-log4j12" % "1.7.5",
     "org.digimead" %% "digi-lib" % "0.2.3.4-SNAPSHOT" % "test"

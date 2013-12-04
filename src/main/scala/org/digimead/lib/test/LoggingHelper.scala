@@ -28,18 +28,20 @@ import org.mockito.Mockito
 import org.mockito.Mockito.verify
 import org.mockito.verification.VerificationMode
 import org.scalatest.BeforeAndAfter
-import org.scalatest.BeforeAndAfterAll
+import org.scalatest.BeforeAndAfterAllConfigMap
+import org.scalatest.ConfigMap
 import org.scalatest.Suite
 import org.scalatest.mock.MockitoSugar
 
-trait LoggingHelper extends Suite with BeforeAndAfter with BeforeAndAfterAll with MockitoSugar {
+trait LoggingHelper extends Suite with BeforeAndAfter
+  with BeforeAndAfterAllConfigMap with MockitoSugar {
   /** Mockito log intercepter */
   val logAppenderMock = mock[org.apache.log4j.Appender]
 
-  def isLogEnabled(config: Map[String, Any] = Map()) = config.contains("log") || System.getProperty("log") != null
+  def isLogEnabled(config: ConfigMap = ConfigMap.empty) = config.contains("log") || System.getProperty("log") != null
 
   /** Setup logging before all tests. */
-  protected def adjustLoggingBeforeAll(configMap: Map[String, Any]) {
+  protected def adjustLoggingBeforeAll(configMap: ConfigMap) {
     org.apache.log4j.BasicConfigurator.resetConfiguration()
     val root = org.apache.log4j.Logger.getRootLogger();
     Logger.getRootLogger().setLevel(org.apache.log4j.Level.TRACE)
@@ -64,7 +66,7 @@ trait LoggingHelper extends Suite with BeforeAndAfter with BeforeAndAfterAll wit
    * @param option - mockito log options, for example
    *   'implicit val option = Mockito.atLeastOnce()' for multiple log entries
    */
-  def withLogCaptor[A, B](a: => A)(b: ArgumentCaptor[org.apache.log4j.spi.LoggingEvent] => B)(implicit option: VerificationMode = Mockito.timeout(0)) = {
+  def withLogCaptor[A, B](a: ⇒ A)(b: ArgumentCaptor[org.apache.log4j.spi.LoggingEvent] ⇒ B)(implicit option: VerificationMode = Mockito.timeout(0)) = {
     Mockito.reset(logAppenderMock)
     val logCaptor = ArgumentCaptor.forClass(classOf[org.apache.log4j.spi.LoggingEvent])
     val result = a

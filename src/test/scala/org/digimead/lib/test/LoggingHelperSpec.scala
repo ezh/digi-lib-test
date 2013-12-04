@@ -20,12 +20,13 @@ package org.digimead.lib.test
 
 import scala.collection.JavaConversions._
 
+import org.scalatest.ConfigMap
 import org.scalatest.WordSpec
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.Matchers
 import org.scalatest.mock.MockitoSugar
 import org.slf4j.LoggerFactory
 
-class LoggingHelperSpec extends WordSpec with LoggingHelper with ShouldMatchers with MockitoSugar {
+class LoggingHelperSpec extends WordSpec with LoggingHelper with Matchers with MockitoSugar {
   val log = LoggerFactory.getLogger(getClass)
 
   after { adjustLoggingAfter }
@@ -33,7 +34,7 @@ class LoggingHelperSpec extends WordSpec with LoggingHelper with ShouldMatchers 
 
   "LoggingHelper" should {
     "interact with mockito" in {
-      withLogCaptor { log.debug("mockito test interception") } { logCaptor =>
+      withLogCaptor { log.debug("mockito test interception") } { logCaptor ⇒
         val enter = logCaptor.getAllValues().head
         enter.getLevel() should be(org.apache.log4j.Level.DEBUG)
         enter.getMessage.toString should be("mockito test interception")
@@ -41,5 +42,5 @@ class LoggingHelperSpec extends WordSpec with LoggingHelper with ShouldMatchers 
     }
   }
 
-  override def beforeAll(configMap: Map[String, Any]) { adjustLoggingBeforeAll(configMap) }
+  override def beforeAll(configMap: ConfigMap) { adjustLoggingBeforeAll(configMap) }
 }
