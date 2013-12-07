@@ -47,7 +47,7 @@ trait OSGiHelper {
   @volatile protected var osgiRegistry: Option[PojoSR] = None
   /** PojoSR configuration */
   protected lazy val osgiConfig = {
-    val config = new java.util.HashMap[AnyRef, AnyRef]()
+    val config = new java.util.HashMap[String, AnyRef]()
     val allBundles = new ClasspathScanner().scanForBundles() // ArrayList[BundleDescriptor]
     allBundles.add(new BundleDescriptor(getClass.getClassLoader, getTestBundleURL(testBundleClass), getTestBundleHeaders))
     val bundles: java.util.List[BundleDescriptor] = (for (bundle ← allBundles) yield {
