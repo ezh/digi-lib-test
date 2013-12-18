@@ -18,25 +18,21 @@
 
 package org.digimead.lib.test
 
-import org.apache.log4j.ConsoleAppender
-import org.apache.log4j.Logger
-import org.apache.log4j.PatternLayout
+import org.apache.log4j.{ ConsoleAppender, Layout, Logger, PatternLayout }
 import org.apache.log4j.spi.LoggingEvent
 import org.apache.log4j.varia.NullAppender
-import org.mockito.ArgumentCaptor
-import org.mockito.Mockito
+import org.mockito.{ ArgumentCaptor, Mockito }
 import org.mockito.Mockito.verify
 import org.mockito.verification.VerificationMode
-import org.scalatest.BeforeAndAfter
-import org.scalatest.BeforeAndAfterAllConfigMap
-import org.scalatest.ConfigMap
-import org.scalatest.Suite
+import org.scalatest.{ BeforeAndAfter, BeforeAndAfterAllConfigMap, ConfigMap, Suite }
 import org.scalatest.mock.MockitoSugar
 
 trait LoggingHelper extends Suite with BeforeAndAfter
   with BeforeAndAfterAllConfigMap with MockitoSugar {
   /** Mockito log intercepter */
   val logAppenderMock = mock[org.apache.log4j.Appender]
+  /** Log pattern. */
+  lazy val logPattern: Layout = new PatternLayout(PatternLayout.TTCC_CONVERSION_PATTERN)
 
   def isLogEnabled(config: ConfigMap = ConfigMap.empty) = config.contains("log") || System.getProperty("log") != null
 
@@ -46,7 +42,7 @@ trait LoggingHelper extends Suite with BeforeAndAfter
     val root = org.apache.log4j.Logger.getRootLogger();
     Logger.getRootLogger().setLevel(org.apache.log4j.Level.TRACE)
     if (isLogEnabled(configMap))
-      root.addAppender(new ConsoleAppender(new PatternLayout(PatternLayout.TTCC_CONVERSION_PATTERN)))
+      root.addAppender(new ConsoleAppender(logPattern))
     else
       root.addAppender(new NullAppender)
   }

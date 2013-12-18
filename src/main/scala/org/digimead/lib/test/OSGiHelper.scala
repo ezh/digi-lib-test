@@ -19,21 +19,13 @@
 
 package org.digimead.lib.test
 
-import java.io.File
-import java.io.InputStream
+import de.kalpatec.pojosr.framework.PojoSR
+import de.kalpatec.pojosr.framework.launch.{ BundleDescriptor, ClasspathScanner, PojoServiceRegistryFactory }
+import java.io.{ File, InputStream }
 import java.net.URL
 import java.util.ServiceLoader
-
-import scala.Option.option2Iterable
-import scala.collection.JavaConversions._
-
-import org.osgi.framework.BundleContext
-import org.osgi.framework.Constants
-
-import de.kalpatec.pojosr.framework.PojoSR
-import de.kalpatec.pojosr.framework.launch.BundleDescriptor
-import de.kalpatec.pojosr.framework.launch.ClasspathScanner
-import de.kalpatec.pojosr.framework.launch.PojoServiceRegistryFactory
+import org.osgi.framework.{ BundleContext, Constants }
+import scala.collection.JavaConversions.{ asScalaBuffer, seqAsJavaList }
 
 trait OSGiHelper {
   /** Abstract value with test bundle class. */

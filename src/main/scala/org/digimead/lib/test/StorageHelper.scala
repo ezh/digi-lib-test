@@ -24,7 +24,7 @@ trait StorageHelper {
   // recursively delete a folder. should be built in. bad java.
   def deleteFolder(folder: File): Unit = {
     assert(folder != null, "folder must be non-null")
-    for (f <- Option(folder.listFiles) getOrElse { Helper.logwarn(getClass, "Folder %s not exists ot not file".format(folder)); Array[File]() }) {
+    for (f ← Option(folder.listFiles) getOrElse { Helper.logwarn(getClass, "Folder %s not exists ot not file".format(folder)); Array[File]() }) {
       if (f.isDirectory) {
         deleteFolder(f)
       } else {
@@ -34,7 +34,7 @@ trait StorageHelper {
     folder.delete
   }
 
-  def withTempFolder[T](f: (File) => T): Unit = {
+  def withTempFolder[T](f: (File) ⇒ T): Unit = {
     val tempFolder = System.getProperty("java.io.tmpdir")
     var folder: File = null
     do {

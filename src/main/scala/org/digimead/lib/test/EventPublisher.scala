@@ -19,23 +19,19 @@
 package org.digimead.lib.test
 
 import java.util.concurrent.atomic.AtomicReference
-
 import scala.collection.mutable.Publisher
-
-import org.slf4j.Logger
-
-import language.reflectiveCalls
+import scala.language.reflectiveCalls
 
 trait EventPublisher[Event] {
-  this: Publisher[Event] =>
+  this: Publisher[Event] ⇒
 
   protected val lastEvent = new AtomicReference[Event]()
 
   def nextEvent(timeout: Long, id: String = "nextEvent"): Option[Event] = {
     var rest = timeout
     while ((Option(lastEvent.getAndSet(null.asInstanceOf[Event])) match {
-      case Some(result) => return Some(result)
-      case _ => true
+      case Some(result) ⇒ return Some(result)
+      case _ ⇒ true
     }) && rest > 0) {
       /**
        * Defending against the system clock going backward
