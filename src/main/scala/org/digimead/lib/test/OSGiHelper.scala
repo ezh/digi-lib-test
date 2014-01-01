@@ -31,11 +31,13 @@ trait OSGiHelper {
   /** Abstract value with test bundle class. */
   val testBundleClass: Class[_] // an any class from the SUIT that allow to determine proper jar
 
-  /** The framework OSGi cache path */
+  /** The framework OSGi cache path. */
   @volatile protected var osgiCache: Option[File] = None
-  /** The framework bundle Context */
+  /** Flag indicating whether  */
+  @volatile protected var osgiCacheCleanFlag = true
+  /** The framework bundle Context. */
   @volatile protected var osgiContext: Option[BundleContext] = None
-  /** The registry used to register services */
+  /** The registry used to register services. */
   @volatile protected var osgiRegistry: Option[PojoSR] = None
   /** PojoSR configuration */
   protected lazy val osgiConfig = {
@@ -83,10 +85,11 @@ trait OSGiHelper {
     osgiContext.map(_.getBundle().stop())
     // Wait after testing (the time for bundle to stop)
     Thread.sleep(osgiDelayBetweenTestInMs)
-    osgiCache.foreach { cache ⇒
-      Helper.loginfo(this, "Delete OSGi cache at " + cache.getCanonicalPath())
-      cache.delete()
-    }
+    if (osgiCacheCleanFlag)
+      osgiCache.foreach { cache ⇒
+        Helper.loginfo(this, "Delete OSGi cache at " + cache.getCanonicalPath())
+        Helper.deleteFile(this, cache)
+      }
     osgiCache = None
   }
   /** Initialize OSGi before test. */

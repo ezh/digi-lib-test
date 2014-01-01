@@ -18,7 +18,9 @@
 
 package org.digimead.lib.test
 
-import language.reflectiveCalls
+import java.io.File
+import org.slf4j.Logger
+import scala.language.reflectiveCalls
 
 object Helper {
   /** Check if method exists. */
@@ -89,5 +91,17 @@ object Helper {
   } catch {
     case e: Throwable ⇒
       None
+  }
+  def deleteFile(obj: AnyRef, dfile: File): Boolean =
+    if (dfile.isDirectory) deleteFileRecursive(obj, dfile) else dfile.delete
+  private def deleteFileRecursive(obj: AnyRef, dfile: File): Boolean = {
+    if (dfile.isDirectory)
+      dfile.listFiles.foreach { f ⇒ deleteFileRecursive(obj, f) }
+    dfile.delete match {
+      case true ⇒ true
+      case false ⇒
+        logerror(obj, "Unable to delete \"" + dfile + "\".")
+        false
+    }
   }
 }

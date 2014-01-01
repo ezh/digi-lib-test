@@ -47,11 +47,11 @@ trait LoggingHelper extends Suite with BeforeAndAfter
       root.addAppender(new NullAppender)
   }
   /** Deinitialize logging after test. */
-  protected def adjustLoggingAfter {
+  protected def adjustLoggingAfter() {
     org.apache.log4j.Logger.getRootLogger().removeAppender(logAppenderMock)
   }
   /** Initialize logging before test. */
-  protected def adjustLoggingBefore {
+  protected def adjustLoggingBefore() {
     org.apache.log4j.Logger.getRootLogger().addAppender(logAppenderMock)
   }
 
