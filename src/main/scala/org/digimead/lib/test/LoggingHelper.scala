@@ -1,7 +1,7 @@
 /**
  * Digi-Lib-Test - various test helpers for Digi components
  *
- * Copyright (c) 2012-2013 Alexey Aksenov ezh@ezh.msk.ru
+ * Copyright (c) 2012-2014 Alexey Aksenov ezh@ezh.msk.ru
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,19 +18,22 @@
 
 package org.digimead.lib.test
 
-import org.apache.log4j.{ ConsoleAppender, Layout, Logger, PatternLayout }
+import org.apache.log4j.Layout
 import org.apache.log4j.spi.LoggingEvent
 import org.apache.log4j.varia.NullAppender
-import org.mockito.{ ArgumentCaptor, Mockito }
+import org.apache.log4j.{ ConsoleAppender, Level, Logger, PatternLayout }
 import org.mockito.Mockito.verify
 import org.mockito.verification.VerificationMode
-import org.scalatest.{ BeforeAndAfter, BeforeAndAfterAllConfigMap, ConfigMap, Suite }
+import org.mockito.{ ArgumentCaptor, Mockito }
 import org.scalatest.mock.MockitoSugar
+import org.scalatest.{ BeforeAndAfter, BeforeAndAfterAllConfigMap, ConfigMap, Suite }
 
 trait LoggingHelper extends Suite with BeforeAndAfter
   with BeforeAndAfterAllConfigMap with MockitoSugar {
   /** Mockito log intercepter */
   val logAppenderMock = mock[org.apache.log4j.Appender]
+  /** Minimum log level if logging enabled. */
+  val logLevel: Level = org.apache.log4j.Level.TRACE
   /** Log pattern. */
   lazy val logPattern: Layout = new PatternLayout(PatternLayout.TTCC_CONVERSION_PATTERN)
 
@@ -40,7 +43,7 @@ trait LoggingHelper extends Suite with BeforeAndAfter
   protected def adjustLoggingBeforeAll(configMap: ConfigMap) {
     org.apache.log4j.BasicConfigurator.resetConfiguration()
     val root = org.apache.log4j.Logger.getRootLogger();
-    Logger.getRootLogger().setLevel(org.apache.log4j.Level.TRACE)
+    Logger.getRootLogger().setLevel(logLevel)
     if (isLogEnabled(configMap))
       root.addAppender(new ConsoleAppender(logPattern))
     else

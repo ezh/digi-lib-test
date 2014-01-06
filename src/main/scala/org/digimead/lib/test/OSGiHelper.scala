@@ -2,7 +2,7 @@
  * Digi-Lib-Test - various test helpers for Digi components
  * Based on few ideas from Yoann/Adele Team code under ASF 2.0 license.
  *
- * Copyright (c) 2012-2013 Alexey Aksenov ezh@ezh.msk.ru
+ * Copyright (c) 2012-2014 Alexey Aksenov ezh@ezh.msk.ru
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,12 +33,12 @@ trait OSGiHelper {
 
   /** The framework OSGi cache path. */
   @volatile protected var osgiCache: Option[File] = None
-  /** Flag indicating whether  */
-  @volatile protected var osgiCacheCleanFlag = true
   /** The framework bundle Context. */
   @volatile protected var osgiContext: Option[BundleContext] = None
   /** The registry used to register services. */
   @volatile protected var osgiRegistry: Option[PojoSR] = None
+  /** Flag indicating whether the OSGi cache should be cleared after completion. */
+  protected val osgiCacheCleanFlag = true
   /** PojoSR configuration */
   protected lazy val osgiConfig = {
     val config = new java.util.HashMap[String, AnyRef]()
