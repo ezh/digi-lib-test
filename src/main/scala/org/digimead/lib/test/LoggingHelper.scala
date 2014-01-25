@@ -18,15 +18,14 @@
 
 package org.digimead.lib.test
 
-import org.apache.log4j.Layout
+import org.apache.log4j.{ ConsoleAppender, FileAppender, Layout, Level, Logger, PatternLayout }
 import org.apache.log4j.spi.LoggingEvent
 import org.apache.log4j.varia.NullAppender
-import org.apache.log4j.{ ConsoleAppender, Level, Logger, PatternLayout }
+import org.mockito.{ ArgumentCaptor, Mockito }
 import org.mockito.Mockito.verify
 import org.mockito.verification.VerificationMode
-import org.mockito.{ ArgumentCaptor, Mockito }
-import org.scalatest.mock.MockitoSugar
 import org.scalatest.{ BeforeAndAfter, BeforeAndAfterAllConfigMap, ConfigMap, Suite }
+import org.scalatest.mock.MockitoSugar
 
 trait LoggingHelper extends Suite with BeforeAndAfter
   with BeforeAndAfterAllConfigMap with MockitoSugar {
@@ -35,10 +34,23 @@ trait LoggingHelper extends Suite with BeforeAndAfter
   /** Minimum log level if logging enabled. */
   val logLevel: Level = org.apache.log4j.Level.TRACE
   /** Log pattern. */
-  lazy val logPattern: Layout = new PatternLayout(PatternLayout.TTCC_CONVERSION_PATTERN)
+  lazy val logPattern: Layout = new PatternLayout("%d{yyyy-MM-dd HH:mm:ss.SSSZ} [%-60t] %-8p %-20c: %m%n")
 
   def isLogEnabled(config: ConfigMap = ConfigMap.empty) = config.contains("log") || System.getProperty("log") != null
 
+  /** Add file appender to root logger. */
+  protected def addFileAppender[T](fileName: String = s"test-${System.currentTimeMillis()}.dlog",
+    f: FileAppender ⇒ T = (appender: FileAppender) ⇒ null.asInstanceOf[T]) {
+    val appender = new FileAppender()
+    appender.setName("FileLogger")
+    appender.setFile(fileName)
+    appender.setLayout(logPattern)
+    appender.setThreshold(logLevel)
+    appender.setAppend(true)
+    f(appender)
+    appender.activateOptions()
+    org.apache.log4j.Logger.getRootLogger().addAppender(appender)
+  }
   /** Setup logging before all tests. */
   protected def adjustLoggingBeforeAll(configMap: ConfigMap) {
     org.apache.log4j.BasicConfigurator.resetConfiguration()
