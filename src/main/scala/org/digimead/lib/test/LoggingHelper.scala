@@ -21,7 +21,8 @@ package org.digimead.lib.test
 import org.apache.log4j.{ ConsoleAppender, FileAppender, Layout, Level, Logger, PatternLayout }
 import org.apache.log4j.spi.LoggingEvent
 import org.apache.log4j.varia.NullAppender
-import org.mockito.{ ArgumentCaptor, Mockito }
+import org.hamcrest.{ BaseMatcher, Description }
+import org.mockito.{ ArgumentCaptor, Matchers, Mockito }
 import org.mockito.Mockito.verify
 import org.mockito.verification.VerificationMode
 import org.scalatest.{ BeforeAndAfter, BeforeAndAfterAllConfigMap, ConfigMap, Suite }
@@ -36,7 +37,21 @@ trait LoggingHelper extends Suite with BeforeAndAfter
   /** Log pattern. */
   lazy val logPattern: Layout = new PatternLayout("%d{yyyy-MM-dd HH:mm:ss.SSSZ} [%-60t] %-8p %-20c: %m%n")
 
+  /** Check whether the logging is enabled. */
   def isLogEnabled(config: ConfigMap = ConfigMap.empty) = config.contains("log") || System.getProperty("log") != null
+  /**
+   * Log event matcher for Mockito.
+   *
+   * For example:
+   * verify(logAppenderMock, Mockito.timeout(1000)).
+   *   doAppend(logMatcher { _.getMessage().toString().startsWith("Restore stack for ") })
+   */
+  def logMatcher(f: LoggingEvent ⇒ Boolean) = Matchers.argThat(new BaseMatcher[LoggingEvent] {
+    def describeTo(description: Description) {}
+    def matches(event: AnyRef): Boolean = event match {
+      case event: LoggingEvent ⇒ f(event)
+    }
+  })
 
   /** Add file appender to root logger. */
   protected def addFileAppender[T](fileName: String = s"test-${System.currentTimeMillis()}.dlog",
