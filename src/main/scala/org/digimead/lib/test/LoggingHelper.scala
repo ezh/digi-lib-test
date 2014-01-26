@@ -18,6 +18,7 @@
 
 package org.digimead.lib.test
 
+import java.util.concurrent.{ Exchanger, TimeUnit }
 import org.apache.log4j.{ ConsoleAppender, FileAppender, Layout, Level, Logger, PatternLayout }
 import org.apache.log4j.spi.LoggingEvent
 import org.apache.log4j.varia.NullAppender
@@ -27,6 +28,7 @@ import org.mockito.Mockito.verify
 import org.mockito.verification.VerificationMode
 import org.scalatest.{ BeforeAndAfter, BeforeAndAfterAllConfigMap, ConfigMap, Suite }
 import org.scalatest.mock.MockitoSugar
+import scala.collection.mutable
 
 trait LoggingHelper extends Suite with BeforeAndAfter
   with BeforeAndAfterAllConfigMap with MockitoSugar {
@@ -49,9 +51,22 @@ trait LoggingHelper extends Suite with BeforeAndAfter
   def logMatcher(f: LoggingEvent ⇒ Boolean) = Matchers.argThat(new BaseMatcher[LoggingEvent] {
     def describeTo(description: Description) {}
     def matches(event: AnyRef): Boolean = event match {
-      case event: LoggingEvent ⇒ f(event)
+      case event: LoggingEvent if event != null && event.getMessage() != null ⇒ f(event)
+      case event ⇒ false
     }
   })
+  /** Capture and test against log messages. */
+  def logVerify(timeout: Long, unit: TimeUnit = TimeUnit.MILLISECONDS)(f: LoggingEvent ⇒ Boolean): Boolean = {
+    val exchanger = new Exchanger[Null]()
+    val callback = new LoggingHelper.CaptureCallback(f, exchanger)
+    LoggingHelper.captureCallbacks(callback) = System.currentTimeMillis() + unit.toMillis(timeout)
+    val result = try {
+      exchanger.exchange(null, timeout, unit)
+      true
+    } catch { case e: Throwable ⇒ false }
+    LoggingHelper.captureCallbacks -= callback
+    result
+  }
 
   /** Add file appender to root logger. */
   protected def addFileAppender[T](fileName: String = s"test-${System.currentTimeMillis()}.dlog",
@@ -71,6 +86,7 @@ trait LoggingHelper extends Suite with BeforeAndAfter
     org.apache.log4j.BasicConfigurator.resetConfiguration()
     val root = org.apache.log4j.Logger.getRootLogger();
     Logger.getRootLogger().setLevel(logLevel)
+    root.addAppender(LoggingHelper.CaptureAppender)
     if (isLogEnabled(configMap))
       root.addAppender(new ConsoleAppender(logPattern))
     else
@@ -102,3 +118,29 @@ trait LoggingHelper extends Suite with BeforeAndAfter
   }
 }
 
+object LoggingHelper {
+  val captureCallbacks = new mutable.HashMap[CaptureCallback, Long]() with mutable.SynchronizedMap[CaptureCallback, Long]
+
+  /** Log appender that retransmit messages to CaptureCallbacks. */
+  object CaptureAppender extends NullAppender {
+    override def doAppend(event: LoggingEvent) {
+      val now = System.currentTimeMillis()
+      captureCallbacks.foreach {
+        case (callback, limit) ⇒
+          if (limit < now)
+            captureCallbacks.remove(callback)
+          else {
+            if (callback(event)) {
+              try callback.exchanger.exchange(null, 1000, TimeUnit.MILLISECONDS)
+              catch { case e: Throwable ⇒ }
+              captureCallbacks.remove(callback)
+            }
+          }
+      }
+    }
+  }
+  /** Log callback for LoggingHelper.logVerify. */
+  class CaptureCallback(val f: LoggingEvent ⇒ Boolean, val exchanger: Exchanger[Null]) {
+    def apply(event: LoggingEvent): Boolean = f(event)
+  }
+}
