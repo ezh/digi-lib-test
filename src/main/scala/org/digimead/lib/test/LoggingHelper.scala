@@ -56,10 +56,11 @@ trait LoggingHelper extends Suite with BeforeAndAfter
     }
   })
   /** Capture and test against log messages. */
-  def logVerify(timeout: Long, unit: TimeUnit = TimeUnit.MILLISECONDS)(f: LoggingEvent ⇒ Boolean): Boolean = {
+  def logVerify[T](f: ⇒ T)(cb: LoggingEvent ⇒ Boolean)(implicit timeout: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): Boolean = {
     val exchanger = new Exchanger[Null]()
-    val callback = new LoggingHelper.CaptureCallback(f, exchanger)
+    val callback = new LoggingHelper.CaptureCallback(cb, exchanger)
     LoggingHelper.captureCallbacks(callback) = System.currentTimeMillis() + unit.toMillis(timeout)
+    f
     val result = try {
       exchanger.exchange(null, timeout, unit)
       true
