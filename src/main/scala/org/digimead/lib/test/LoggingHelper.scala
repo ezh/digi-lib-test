@@ -59,14 +59,10 @@ trait LoggingHelper extends Suite with BeforeAndAfter
   def logVerify[T](f: ⇒ T)(cb: LoggingEvent ⇒ Boolean)(implicit timeout: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): Boolean = {
     val exchanger = new Exchanger[Null]()
     val callback = new LoggingHelper.CaptureCallback(cb, exchanger)
-    LoggingHelper.captureCallbacks(callback) = System.currentTimeMillis() + unit.toMillis(timeout)
-    f
-    val result = try {
-      exchanger.exchange(null, timeout, unit)
-      true
-    } catch { case e: Throwable ⇒ false }
-    LoggingHelper.captureCallbacks -= callback
-    result
+    val appender = new LoggingHelper.CaptureAppender(callback, System.currentTimeMillis() + unit.toMillis(timeout))
+    org.apache.log4j.Logger.getRootLogger().addAppender(appender)
+    try { f; try { exchanger.exchange(null, timeout, unit); true } catch { case e: Throwable ⇒ false } }
+    finally org.apache.log4j.Logger.getRootLogger().removeAppender(appender)
   }
 
   /** Add file appender to root logger. */
@@ -87,19 +83,10 @@ trait LoggingHelper extends Suite with BeforeAndAfter
     org.apache.log4j.BasicConfigurator.resetConfiguration()
     val root = org.apache.log4j.Logger.getRootLogger();
     Logger.getRootLogger().setLevel(logLevel)
-    root.addAppender(LoggingHelper.CaptureAppender)
     if (isLogEnabled(configMap))
       root.addAppender(new ConsoleAppender(logPattern))
     else
       root.addAppender(new NullAppender)
-  }
-  /** Deinitialize logging after test. */
-  protected def adjustLoggingAfter() {
-    org.apache.log4j.Logger.getRootLogger().removeAppender(logAppenderMock)
-  }
-  /** Initialize logging before test. */
-  protected def adjustLoggingBefore() {
-    org.apache.log4j.Logger.getRootLogger().addAppender(logAppenderMock)
   }
 
   /**
@@ -109,34 +96,40 @@ trait LoggingHelper extends Suite with BeforeAndAfter
    * @param option - mockito log options, for example
    *   'implicit val option = Mockito.atLeastOnce()' for multiple log entries
    */
-  def withLogCaptor[A, B](a: ⇒ A)(b: ArgumentCaptor[org.apache.log4j.spi.LoggingEvent] ⇒ B)(implicit option: VerificationMode = Mockito.timeout(0)) = {
+  def withMockitoLogCaptor[A, B](a: ⇒ A)(b: ArgumentCaptor[org.apache.log4j.spi.LoggingEvent] ⇒ B)(implicit option: VerificationMode = Mockito.timeout(0)) = {
     Mockito.reset(logAppenderMock)
+    org.apache.log4j.Logger.getRootLogger().addAppender(logAppenderMock)
     val logCaptor = ArgumentCaptor.forClass(classOf[org.apache.log4j.spi.LoggingEvent])
     val result = a
     verify(logAppenderMock, option).doAppend(logCaptor.capture())
     b(logCaptor)
+    org.apache.log4j.Logger.getRootLogger().removeAppender(logAppenderMock)
     result
   }
 }
 
 object LoggingHelper {
-  val captureCallbacks = new mutable.HashMap[CaptureCallback, Long]() with mutable.SynchronizedMap[CaptureCallback, Long]
-
   /** Log appender that retransmit messages to CaptureCallbacks. */
-  object CaptureAppender extends NullAppender {
+  class CaptureAppender(callback: CaptureCallback, limit: Long) extends NullAppender {
     override def doAppend(event: LoggingEvent) {
       val now = System.currentTimeMillis()
-      captureCallbacks.foreach {
-        case (callback, limit) ⇒
-          if (limit < now)
-            captureCallbacks.remove(callback)
-          else {
-            if (callback(event)) {
-              try callback.exchanger.exchange(null, 1000, TimeUnit.MILLISECONDS)
-              catch { case e: Throwable ⇒ }
-              captureCallbacks.remove(callback)
-            }
+      if (limit < now)
+        org.apache.log4j.Logger.getRootLogger().removeAppender(this)
+      else {
+        val eventMatches = event.getMessage() != null && {
+          try callback(event)
+          catch {
+            case e: Throwable ⇒
+              println("LoggingHelper.CaptureAppender error: " + e.getMessage())
+              e.printStackTrace()
+              false
           }
+        }
+        if (eventMatches) {
+          try callback.exchanger.exchange(null, 100, TimeUnit.MILLISECONDS)
+          catch { case e: Throwable ⇒ }
+          org.apache.log4j.Logger.getRootLogger().removeAppender(this)
+        }
       }
     }
   }

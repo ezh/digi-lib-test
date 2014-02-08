@@ -31,11 +31,9 @@ class OSGiHelperSpec extends WordSpec with OSGiHelper with LoggingHelper with Ma
 
   after {
     adjustOSGiAfter
-    adjustLoggingAfter
   }
   before {
     DependencyInjection(org.digimead.digi.lib.default, false)
-    adjustLoggingBefore
     adjustOSGiBefore
     osgiRegistry.foreach(_.start())
   }

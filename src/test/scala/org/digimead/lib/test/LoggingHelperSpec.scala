@@ -29,12 +29,9 @@ import org.slf4j.LoggerFactory
 class LoggingHelperSpec extends WordSpec with LoggingHelper with Matchers with MockitoSugar {
   val log = LoggerFactory.getLogger(getClass)
 
-  after { adjustLoggingAfter }
-  before { adjustLoggingBefore }
-
   "LoggingHelper" should {
     "interact with mockito" in {
-      withLogCaptor { log.debug("mockito test interception") } { logCaptor ⇒
+      withMockitoLogCaptor { log.debug("mockito test interception") } { logCaptor ⇒
         val enter = logCaptor.getAllValues().head
         enter.getLevel() should be(org.apache.log4j.Level.DEBUG)
         enter.getMessage.toString should be("mockito test interception")
