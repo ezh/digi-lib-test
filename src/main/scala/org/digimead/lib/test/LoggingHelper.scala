@@ -19,21 +19,23 @@
 package org.digimead.lib.test
 
 import java.util.concurrent.{ Exchanger, TimeUnit }
-import org.apache.log4j.{ ConsoleAppender, FileAppender, Layout, Level, Logger, PatternLayout }
+import org.apache.log4j.{ ConsoleAppender, FileAppender, Layout, Level, PatternLayout }
 import org.apache.log4j.spi.LoggingEvent
 import org.apache.log4j.varia.NullAppender
 import org.hamcrest.{ BaseMatcher, Description }
 import org.mockito.{ ArgumentCaptor, Matchers, Mockito }
-import org.mockito.Mockito.verify
+import org.mockito.Mockito.{ spy, verify }
 import org.mockito.verification.VerificationMode
 import org.scalatest.{ BeforeAndAfter, BeforeAndAfterAllConfigMap, ConfigMap, Suite }
 import org.scalatest.mock.MockitoSugar
 import scala.collection.mutable
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 trait LoggingHelper extends Suite with BeforeAndAfter
   with BeforeAndAfterAllConfigMap with MockitoSugar {
   /** Mockito log intercepter */
-  val logAppenderMock = mock[org.apache.log4j.Appender]
+  val testLogAppender = spy(new LoggingHelper.TestAppender)
   /** Minimum log level if logging enabled. */
   val logLevel: Level = org.apache.log4j.Level.TRACE
   /** Log pattern. */
@@ -59,10 +61,11 @@ trait LoggingHelper extends Suite with BeforeAndAfter
   def logVerify[T](f: ⇒ T)(cb: LoggingEvent ⇒ Boolean)(implicit timeout: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): Boolean = {
     val exchanger = new Exchanger[Null]()
     val callback = new LoggingHelper.CaptureCallback(cb, exchanger)
-    val appender = new LoggingHelper.CaptureAppender(callback, System.currentTimeMillis() + unit.toMillis(timeout))
-    org.apache.log4j.Logger.getRootLogger().addAppender(appender)
+    val limit = System.currentTimeMillis() + unit.toMillis(timeout)
+    val hook = new LoggingHelper.TestHook(callback, limit)
+    LoggingHelper.hooks += hook -> limit
     try { f; try { exchanger.exchange(null, timeout, unit); true } catch { case e: Throwable ⇒ false } }
-    finally org.apache.log4j.Logger.getRootLogger().removeAppender(appender)
+    finally LoggingHelper.hooks -= hook
   }
 
   /** Add file appender to root logger. */
@@ -82,7 +85,8 @@ trait LoggingHelper extends Suite with BeforeAndAfter
   protected def adjustLoggingBeforeAll(configMap: ConfigMap) {
     org.apache.log4j.BasicConfigurator.resetConfiguration()
     val root = org.apache.log4j.Logger.getRootLogger();
-    Logger.getRootLogger().setLevel(logLevel)
+    root.setLevel(logLevel)
+    root.addAppender(testLogAppender)
     if (isLogEnabled(configMap))
       root.addAppender(new ConsoleAppender(logPattern))
     else
@@ -97,30 +101,39 @@ trait LoggingHelper extends Suite with BeforeAndAfter
    *   'implicit val option = Mockito.atLeastOnce()' for multiple log entries
    */
   def withMockitoLogCaptor[A, B](a: ⇒ A)(b: ArgumentCaptor[org.apache.log4j.spi.LoggingEvent] ⇒ B)(implicit option: VerificationMode = Mockito.timeout(0)) = {
-    Mockito.reset(logAppenderMock)
-    org.apache.log4j.Logger.getRootLogger().addAppender(logAppenderMock)
+    Mockito.reset(testLogAppender)
     val logCaptor = ArgumentCaptor.forClass(classOf[org.apache.log4j.spi.LoggingEvent])
     val result = a
-    verify(logAppenderMock, option).doAppend(logCaptor.capture())
+    verify(testLogAppender, option).doAppend(logCaptor.capture())
     b(logCaptor)
-    org.apache.log4j.Logger.getRootLogger().removeAppender(logAppenderMock)
     result
   }
 }
 
 object LoggingHelper {
-  /** Log appender that retransmit messages to CaptureCallbacks. */
-  class CaptureAppender(callback: CaptureCallback, limit: Long) extends NullAppender {
+  val hooks = new mutable.WeakHashMap[TestHook, Long] with mutable.SynchronizedMap[TestHook, Long]
+
+  /** Log appender that retransmit messages to test hooks. */
+  class TestAppender extends NullAppender {
     override def doAppend(event: LoggingEvent) {
+      if (event.getMessage() != null) {
+        val keys = hooks.synchronized { hooks.keys.toSeq }
+        keys.foreach(hook ⇒ Future { hook(event) })
+      }
+    }
+  }
+  /** Test hook that validates log event against the callback. */
+  class TestHook(callback: CaptureCallback, limit: Long) {
+    def apply(event: LoggingEvent) {
       val now = System.currentTimeMillis()
       if (limit < now)
-        org.apache.log4j.Logger.getRootLogger().removeAppender(this)
+        hooks -= this
       else {
         val eventMatches = event.getMessage() != null && {
           try callback(event)
           catch {
             case e: Throwable ⇒
-              println("LoggingHelper.CaptureAppender error: " + e.getMessage())
+              println("LoggingHelper.TestHook error: " + e.getMessage())
               e.printStackTrace()
               false
           }
@@ -128,7 +141,7 @@ object LoggingHelper {
         if (eventMatches) {
           try callback.exchanger.exchange(null, 100, TimeUnit.MILLISECONDS)
           catch { case e: Throwable ⇒ }
-          org.apache.log4j.Logger.getRootLogger().removeAppender(this)
+          hooks -= this
         }
       }
     }
