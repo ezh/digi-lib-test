@@ -44,9 +44,9 @@ inConfig(OSGiConf)({
   )
 })
 
-crossScalaVersions := Seq("2.10.3")
+crossScalaVersions := Seq("2.10.4")
 
-scalaVersion := "2.10.3"
+scalaVersion := "2.10.4"
 
 scalacOptions ++= Seq("-encoding", "UTF-8", "-deprecation", "-unchecked", "-Xcheckinit", "-feature") ++
   (if (true || (System getProperty "java.runtime.version" startsWith "1.7")) Seq() else Seq("-optimize")) // -optimize fails with jdk7
@@ -67,10 +67,10 @@ resolvers += "digimead-maven" at "http://storage.googleapis.com/maven.repository
 libraryDependencies ++= Seq(
     "org.digimead" %% "pojosrx" % "0.2.3.0-SNAPSHOT",
     "org.mockito" % "mockito-core" % "1.9.5",
-    "org.scalatest" %% "scalatest" % "2.0"
+    "org.scalatest" %% "scalatest" % "2.1.3"
       excludeAll(ExclusionRule("org.scala-lang", "scala-reflect"), ExclusionRule("org.scala-lang", "scala-actors")),
-    "org.slf4j" % "slf4j-log4j12" % "1.7.5",
-    "org.digimead" %% "digi-lib" % "0.2.3.4-SNAPSHOT" % "test"
+    "org.slf4j" % "slf4j-log4j12" % "1.7.7",
+    "org.digimead" %% "digi-lib" % "0.2.3.5-SNAPSHOT" % "test"
   )
 
 //
