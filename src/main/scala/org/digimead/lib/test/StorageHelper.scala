@@ -18,10 +18,48 @@
 
 package org.digimead.lib.test
 
-import java.io.File
+import java.io.{ File, FileInputStream, FileOutputStream, FileWriter, InputStream, OutputStream }
+import java.math.BigInteger
+import java.nio.channels.FileChannel
+import java.security.{ DigestInputStream, MessageDigest }
+import scala.annotation.tailrec
 
+/**
+ * Add a file routines to testing infrastructure
+ */
 trait StorageHelper {
-  // recursively delete a folder. should be built in. bad java.
+  /** Recursively copy a folder or copy a file */
+  def copy(from: File, to: File): Unit =
+    if (from.isDirectory())
+      Option(from.listFiles()) match {
+        case Some(files) ⇒
+          to.mkdirs()
+          files.foreach(file ⇒ copy(file, new File(to, file.getName())))
+        case None ⇒
+      }
+    else
+      copyFile(from, to)
+  /** Copy a file */
+  def copyFile(sourceFile: File, destFile: File): Boolean = {
+    if (!destFile.exists())
+      destFile.createNewFile()
+    var source: FileChannel = null
+    var destination: FileChannel = null
+    try {
+      source = new FileInputStream(sourceFile).getChannel()
+      destination = new FileOutputStream(destFile).getChannel()
+      destination.transferFrom(source, 0, source.size())
+    } finally {
+      if (source != null) {
+        source.close()
+      }
+      if (destination != null) {
+        destination.close()
+      }
+    }
+    sourceFile.length == destFile.length
+  }
+  /** Recursively delete a folder or delete a file */
   def deleteFolder(folder: File): Unit = {
     assert(folder != null, "folder must be non-null")
     for (f ← Option(folder.listFiles) getOrElse { Helper.logwarn(getClass, "Folder %s not exists ot not file".format(folder)); Array[File]() }) {
@@ -33,7 +71,50 @@ trait StorageHelper {
     }
     folder.delete
   }
-
+  /** Calculate digest for a stream and close it. */
+  def digest(stream: InputStream, algorithm: String = "SHA-1"): Option[String] = {
+    val md = MessageDigest.getInstance(algorithm)
+    var is: InputStream = stream
+    try {
+      is = new DigestInputStream(is, md)
+      val buffer = new Array[Byte](1024)
+      var read = is.read(buffer)
+      while (read != -1)
+        read = is.read(buffer)
+    } catch {
+      case e: Throwable ⇒
+        Helper.logwarn(getClass, "Unable to calculate digest: " + e.getMessage())
+        return None
+    } finally {
+      is.close()
+    }
+    val bigInt = new BigInteger(1, md.digest())
+    Some(String.format("%32s", bigInt.toString(16)).replace(' ', '0'))
+  }
+  /** Write to a file */
+  def writeToFile(file: File, text: String) {
+    val fw = new FileWriter(file)
+    try { fw.write(text) }
+    finally { fw.close }
+  }
+  /** Write to a stream */
+  def writeToStream(in: InputStream, out: OutputStream, bufferSize: Int = 8192) {
+    val buffer = new Array[Byte](bufferSize)
+    @tailrec
+    def next(exit: Boolean = false) {
+      if (exit) {
+        in.close()
+        out.close()
+        return
+      }
+      val read = in.read(buffer)
+      if (read > 0)
+        out.write(buffer, 0, read)
+      next(read == -1)
+    }
+    next()
+  }
+  /** Execute code with temporary folder */
   def withTempFolder[T](f: (File) ⇒ T): Unit = {
     val tempFolder = System.getProperty("java.io.tmpdir")
     var folder: File = null
