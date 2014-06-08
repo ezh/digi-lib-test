@@ -28,7 +28,7 @@ import scala.annotation.tailrec
  * Add a file routines to testing infrastructure
  */
 trait StorageHelper {
-  /** Recursively copy a folder or copy a file */
+  /** Recursively copy a folder or a file */
   def copy(from: File, to: File): Unit =
     if (from.isDirectory())
       Option(from.listFiles()) match {
@@ -114,7 +114,7 @@ trait StorageHelper {
     }
     next()
   }
-  /** Execute code with temporary folder */
+  /** Allocate temporary folder for code block */
   def withTempFolder[T](f: (File) ⇒ T): Unit = {
     val tempFolder = System.getProperty("java.io.tmpdir")
     var folder: File = null
@@ -125,6 +125,16 @@ trait StorageHelper {
       f(folder)
     } finally {
       deleteFolder(folder)
+    }
+  }
+  /** Iterate over directory recursively */
+  def visitPath[T](path: File, visitor: File ⇒ T) {
+    val list = path.listFiles()
+    if (list == null) return
+    for (f ← list) {
+      if (f.isDirectory())
+        visitPath(f, visitor)
+      visitor(f)
     }
   }
 }
