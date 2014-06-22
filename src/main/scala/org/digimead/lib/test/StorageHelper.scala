@@ -18,7 +18,7 @@
 
 package org.digimead.lib.test
 
-import java.io.{ File, FileInputStream, FileOutputStream, FileWriter, InputStream, OutputStream }
+import java.io.{ BufferedInputStream, ByteArrayInputStream, File, FileInputStream, FileOutputStream, FileWriter, InputStream, OutputStream }
 import java.math.BigInteger
 import java.nio.channels.FileChannel
 import java.security.{ DigestInputStream, MessageDigest }
@@ -71,6 +71,16 @@ trait StorageHelper {
     }
     folder.delete
   }
+  /** Calculate digest for a byte array. */
+  def digest(data: Array[Byte]): Option[String] = digest(data, "SHA-1")
+  /** Calculate digest for a byte array. */
+  def digest(data: Array[Byte], algorithm: String): Option[String] =
+    digest(new ByteArrayInputStream(data), algorithm)
+  /** Calculate digest for a file. */
+  def digest(file: File): Option[String] = digest(file, "SHA-1")
+  /** Calculate digest for a file. */
+  def digest(file: File, algorithm: String): Option[String] =
+    digest(new BufferedInputStream(new FileInputStream(file)), algorithm)
   /** Calculate digest for a stream and close it. */
   def digest(stream: InputStream, algorithm: String = "SHA-1"): Option[String] = {
     val md = MessageDigest.getInstance(algorithm)
