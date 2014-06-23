@@ -1,7 +1,7 @@
 /**
  * Digi-Lib-Test - various test helpers for Digi components
  *
- * Copyright (c) 2013 Alexey Aksenov ezh@ezh.msk.ru
+ * Copyright (c) 2013-2014 Alexey Aksenov ezh@ezh.msk.ru
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,8 @@
 package org.digimead.lib.test
 
 import org.digimead.digi.lib.DependencyInjection
-import org.digimead.digi.lib.log.api.Loggable
-import org.scalatest.BeforeAndAfterAll
-import org.scalatest.WordSpec
-import org.scalatest.Matchers
+import org.digimead.digi.lib.log.api.XLoggable
+import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpec }
 import org.slf4j.LoggerFactory
 
 class HelperSpec extends WordSpec with BeforeAndAfterAll with Matchers {
@@ -53,7 +51,7 @@ class HelperSpec extends WordSpec with BeforeAndAfterAll with Matchers {
   class Test1 {
     val log = LoggerFactory.getLogger(getClass)
   }
-  class Test2 extends Loggable {
+  class Test2 extends XLoggable {
   }
   class Test3 {
   }

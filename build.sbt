@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2012-2013 Alexey Aksenov ezh@ezh.msk.ru
+// Copyright (c) 2012-2014 Alexey Aksenov ezh@ezh.msk.ru
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ inConfig(OSGiConf)({
   import OSGiKey._
   Seq[Project.Setting[_]](
     osgiBndBundleSymbolicName := "org.digimead.digi.lib.test",
-    osgiBndBundleCopyright := "Copyright © 2011-2013 Alexey B. Aksenov/Ezh. All rights reserved.",
+    osgiBndBundleCopyright := "Copyright © 2011-2014 Alexey B. Aksenov/Ezh. All rights reserved.",
     osgiBndExportPackage := List("org.digimead.*"),
     osgiBndImportPackage := List("!org.aspectj.*", "*"),
     osgiBndBundleLicense := "http://www.apache.org/licenses/LICENSE-2.0.txt;description=The Apache Software License, Version 2.0"
@@ -64,12 +64,17 @@ if (sys.env.contains("XBOOTCLASSPATH")) Seq(javacOptions += "-Xbootclasspath:" +
 resolvers += "digimead-maven" at "http://storage.googleapis.com/maven.repository.digimead.org/"
 
 libraryDependencies ++= Seq(
+    // https://issues.scala-lang.org/browse/SI-7751
+    // .../guava-15.0.jar(com/google/common/cache/CacheBuilder.class)' is broken
+    // [error] (class java.lang.RuntimeException/bad constant pool index: 0 at pos: 15214)
+    "com.google.code.findbugs" % "jsr305" % "2.0.3",
+    "com.google.guava" % "guava" % "17.0",
     "org.digimead" %% "pojosrx" % "0.2.3.0-SNAPSHOT",
     "org.mockito" % "mockito-core" % "1.9.5",
-    "org.scalatest" %% "scalatest" % "2.1.3"
+    "org.scalatest" %% "scalatest" % "2.2.0"
       excludeAll(ExclusionRule("org.scala-lang", "scala-reflect"), ExclusionRule("org.scala-lang", "scala-actors")),
     "org.slf4j" % "slf4j-log4j12" % "1.7.7",
-    "org.digimead" %% "digi-lib" % "0.2.3.5-SNAPSHOT" % "test"
+    "org.digimead" %% "digi-lib" % "0.3.0.0-SNAPSHOT" % "test"
   )
 
 //

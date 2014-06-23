@@ -1,7 +1,7 @@
 /**
  * Digi-Lib-Test - various test helpers for Digi components
  *
- * Copyright (c) 2012-2013 Alexey Aksenov ezh@ezh.msk.ru
+ * Copyright (c) 2012-2014 Alexey Aksenov ezh@ezh.msk.ru
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ trait MatcherHelper {
   def expectDefined(obj: Any)(test: PartialFunction[Any, Unit]) {
     if (!test.isDefinedAt(obj)) {
       val t = new Throwable
-      throw new TestFailedException("Unexpected argument " + obj + "\n" + t.getStackTraceString, 1)
+      throw new TestFailedException("Unexpected argument " + obj + "\n" + t.getStackTrace.mkString("\n"), 1)
     }
   }
 }

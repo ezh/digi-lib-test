@@ -18,6 +18,8 @@
 
 package org.digimead.lib.test
 
+import com.google.common.collect.Maps
+import java.util.Collections
 import java.util.concurrent.{ Exchanger, TimeUnit }
 import org.apache.log4j.{ ConsoleAppender, FileAppender, Layout, Level, PatternLayout }
 import org.apache.log4j.spi.LoggingEvent
@@ -28,7 +30,7 @@ import org.mockito.Mockito.{ spy, verify }
 import org.mockito.verification.VerificationMode
 import org.scalatest.{ BeforeAndAfter, BeforeAndAfterAllConfigMap, ConfigMap, Suite }
 import org.scalatest.mock.MockitoSugar
-import scala.collection.mutable
+import scala.collection.JavaConverters.mapAsScalaMapConverter
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -111,7 +113,7 @@ trait LoggingHelper extends Suite with BeforeAndAfter
 }
 
 object LoggingHelper {
-  val hooks = new mutable.WeakHashMap[TestHook, Long] with mutable.SynchronizedMap[TestHook, Long]
+  val hooks = Collections.synchronizedMap(Maps.newHashMap[TestHook, Long]).asScala
 
   /** Log appender that retransmit messages to test hooks. */
   class TestAppender extends NullAppender {
