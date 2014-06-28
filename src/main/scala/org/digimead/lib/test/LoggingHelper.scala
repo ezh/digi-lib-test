@@ -18,9 +18,7 @@
 
 package org.digimead.lib.test
 
-import com.google.common.collect.Maps
-import java.util.Collections
-import java.util.concurrent.{ Exchanger, TimeUnit }
+import java.util.concurrent.{ ConcurrentHashMap, Exchanger, TimeUnit }
 import org.apache.log4j.{ ConsoleAppender, FileAppender, Layout, Level, PatternLayout }
 import org.apache.log4j.spi.LoggingEvent
 import org.apache.log4j.varia.NullAppender
@@ -113,7 +111,7 @@ trait LoggingHelper extends Suite with BeforeAndAfter
 }
 
 object LoggingHelper {
-  val hooks = Collections.synchronizedMap(Maps.newHashMap[TestHook, Long]).asScala
+  val hooks = new ConcurrentHashMap[TestHook, Long].asScala
 
   /** Log appender that retransmit messages to test hooks. */
   class TestAppender extends NullAppender {
