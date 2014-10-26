@@ -62,7 +62,7 @@ trait StorageHelper {
   /** Recursively delete a folder or delete a file */
   def deleteFolder(folder: File): Unit = {
     assert(folder != null, "folder must be non-null")
-    for (f ← Option(folder.listFiles) getOrElse { Helper.logwarn(getClass, "Folder %s not exists ot not file".format(folder)); Array[File]() }) {
+    for (f ← Option(folder.listFiles) getOrElse { Helper.logwarn(getClass, "Folder %s does not exist or not a file".format(folder)); Array[File]() }) {
       if (f.isDirectory) {
         deleteFolder(f)
       } else {

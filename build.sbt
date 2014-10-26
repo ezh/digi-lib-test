@@ -44,18 +44,13 @@ inConfig(OSGiConf)({
   )
 })
 
-crossScalaVersions := Seq("2.11.1")
+crossScalaVersions := Seq("2.11.2")
 
-scalaVersion := "2.11.1"
+scalaVersion := "2.11.2"
 
 scalacOptions ++= Seq("-encoding", "UTF-8", "-deprecation", "-unchecked", "-Xcheckinit", "-feature")
 
-// http://vanillajava.blogspot.ru/2012/02/using-java-7-to-target-much-older-jvms.html
-javacOptions ++= Seq("-Xlint:unchecked", "-Xlint:deprecation", "-source", "1.7", "-target", "1.7")
-
-javacOptions in doc := Seq("-source", "1.7")
-
-if (sys.env.contains("XBOOTCLASSPATH")) Seq(javacOptions += "-Xbootclasspath:" + sys.env("XBOOTCLASSPATH")) else Seq()
+javacOptions ++= Seq("-Xlint:unchecked", "-Xlint:deprecation")
 
 //
 // Custom local options
@@ -67,14 +62,14 @@ libraryDependencies ++= Seq(
     // https://issues.scala-lang.org/browse/SI-7751
     // .../guava-15.0.jar(com/google/common/cache/CacheBuilder.class)' is broken
     // [error] (class java.lang.RuntimeException/bad constant pool index: 0 at pos: 15214)
-    "com.google.code.findbugs" % "jsr305" % "2.0.3",
-    "com.google.guava" % "guava" % "17.0",
-    "org.digimead" %% "pojosrx" % "0.2.3.0-SNAPSHOT",
-    "org.mockito" % "mockito-core" % "1.9.5",
-    "org.scalatest" %% "scalatest" % "2.2.0"
+    "com.google.code.findbugs" % "jsr305" % "3.0.0",
+    "com.google.guava" % "guava" % "18.0",
+    "org.digimead" %% "pojosrx" % "0.2.3.0",
+    "org.mockito" % "mockito-core" % "1.9.5", // 0.10.x are broken
+    "org.scalatest" %% "scalatest" % "2.2.1"
       excludeAll(ExclusionRule("org.scala-lang", "scala-reflect"), ExclusionRule("org.scala-lang", "scala-actors")),
     "org.slf4j" % "slf4j-log4j12" % "1.7.7",
-    "org.digimead" %% "digi-lib" % "0.3.0.0-SNAPSHOT" % "test"
+    "org.digimead" %% "digi-lib" % "0.3.0.1" % "test"
   )
 
 //

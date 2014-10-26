@@ -5,6 +5,8 @@ Various test helpers for Digi components.
 
 [See Digi-Lib-Test documentation](http://ezh.github.io/digi-lib-test/).
 
+__Required Java 7 or higher__
+
 LICENSE
 -------
 
@@ -16,4 +18,4 @@ Please check the individual source files for details.
 Copyright
 ---------
 
-Copyright © 2012-2013 Alexey B. Aksenov/Ezh. All rights reserved.
+Copyright © 2012-2014 Alexey B. Aksenov/Ezh. All rights reserved.
