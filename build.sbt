@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2012-2014 Alexey Aksenov ezh@ezh.msk.ru
+// Copyright (c) 2012-2015 Alexey Aksenov ezh@ezh.msk.ru
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -37,16 +37,16 @@ inConfig(OSGiConf)({
   import OSGiKey._
   Seq[Project.Setting[_]](
     osgiBndBundleSymbolicName := "org.digimead.digi.lib.test",
-    osgiBndBundleCopyright := "Copyright © 2011-2014 Alexey B. Aksenov/Ezh. All rights reserved.",
+    osgiBndBundleCopyright := "Copyright © 2011-2015 Alexey B. Aksenov/Ezh. All rights reserved.",
     osgiBndExportPackage := List("org.digimead.*"),
     osgiBndImportPackage := List("!org.aspectj.*", "*"),
     osgiBndBundleLicense := "http://www.apache.org/licenses/LICENSE-2.0.txt;description=The Apache Software License, Version 2.0"
   )
 })
 
-crossScalaVersions := Seq("2.11.2")
+crossScalaVersions := Seq("2.11.5")
 
-scalaVersion := "2.11.2"
+scalaVersion := "2.11.5"
 
 scalacOptions ++= Seq("-encoding", "UTF-8", "-deprecation", "-unchecked", "-Xcheckinit", "-feature")
 
@@ -64,12 +64,12 @@ libraryDependencies ++= Seq(
     // [error] (class java.lang.RuntimeException/bad constant pool index: 0 at pos: 15214)
     "com.google.code.findbugs" % "jsr305" % "3.0.0",
     "com.google.guava" % "guava" % "18.0",
-    "org.digimead" %% "pojosrx" % "0.2.3.0",
+    "org.digimead" % "pojosrx" % "0.2.3.1",
     "org.mockito" % "mockito-core" % "1.9.5", // 0.10.x are broken
     "org.scalatest" %% "scalatest" % "2.2.1"
       excludeAll(ExclusionRule("org.scala-lang", "scala-reflect"), ExclusionRule("org.scala-lang", "scala-actors")),
-    "org.slf4j" % "slf4j-log4j12" % "1.7.7",
-    "org.digimead" %% "digi-lib" % "0.3.0.1" % "test"
+    "org.slf4j" % "slf4j-log4j12" % "1.7.10",
+    "org.digimead" %% "digi-lib" % "0.3.0.2" % "test"
   )
 
 //
