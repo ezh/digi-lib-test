@@ -35,7 +35,7 @@ version <<= (baseDirectory) { (b) => scala.io.Source.fromFile(b / "version").mkS
 
 inConfig(OSGiConf)({
   import OSGiKey._
-  Seq[Project.Setting[_]](
+  Seq(
     osgiBndBundleSymbolicName := "org.digimead.digi.lib.test",
     osgiBndBundleCopyright := "Copyright © 2011-2015 Alexey B. Aksenov/Ezh. All rights reserved.",
     osgiBndExportPackage := List("org.digimead.*"),
@@ -44,9 +44,9 @@ inConfig(OSGiConf)({
   )
 })
 
-crossScalaVersions := Seq("2.11.5")
+crossScalaVersions := Seq("2.11.6")
 
-scalaVersion := "2.11.5"
+scalaVersion := "2.11.6"
 
 scalacOptions ++= Seq("-encoding", "UTF-8", "-deprecation", "-unchecked", "-Xcheckinit", "-feature")
 
@@ -66,10 +66,10 @@ libraryDependencies ++= Seq(
     "com.google.guava" % "guava" % "18.0",
     "org.digimead" % "pojosrx" % "0.2.3.1",
     "org.mockito" % "mockito-core" % "1.9.5", // 0.10.x are broken
-    "org.scalatest" %% "scalatest" % "2.2.1"
+    "org.scalatest" %% "scalatest" % "2.2.4"
       excludeAll(ExclusionRule("org.scala-lang", "scala-reflect"), ExclusionRule("org.scala-lang", "scala-actors")),
-    "org.slf4j" % "slf4j-log4j12" % "1.7.10",
-    "org.digimead" %% "digi-lib" % "0.3.0.2" % "test"
+    "org.slf4j" % "slf4j-log4j12" % "1.7.12",
+    "org.digimead" %% "digi-lib" % "0.3.0.3" % "test"
   )
 
 //

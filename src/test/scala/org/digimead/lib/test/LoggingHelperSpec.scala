@@ -1,7 +1,7 @@
 /**
  * Digi-Lib-Test - various test helpers for Digi components
  *
- * Copyright (c) 2013 Alexey Aksenov ezh@ezh.msk.ru
+ * Copyright (c) 2013-2015 Alexey Aksenov ezh@ezh.msk.ru
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,12 +30,19 @@ class LoggingHelperSpec extends WordSpec with LoggingHelper with Matchers with M
   val log = LoggerFactory.getLogger(getClass)
 
   "LoggingHelper" should {
-    "interact with mockito" in {
+    "interaction with mockito" in {
       withMockitoLogCaptor { log.debug("mockito test interception") } { logCaptor ⇒
         val enter = logCaptor.getAllValues().head
         enter.getLevel() should be(org.apache.log4j.Level.DEBUG)
         enter.getMessage.toString should be("mockito test interception")
       }
+    }
+    "provides detailed description of throwable" in {
+      val cause1 = new RuntimeException("cause1")
+      val cause2 = new RuntimeException("cause2", cause1)
+      val renderer = new LoggingHelper.DetailedThrowableRenderer
+      val result = renderer.doRender(new RuntimeException("123", cause2))
+      assert(result.filter(_.startsWith("Caused by: ")).size === 2)
     }
   }
 

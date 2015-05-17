@@ -1,7 +1,7 @@
 /**
  * Digi-Lib-Test - various test helpers for Digi components
  *
- * Copyright (c) 2012-2014 Alexey Aksenov ezh@ezh.msk.ru
+ * Copyright (c) 2012-2015 Alexey Aksenov ezh@ezh.msk.ru
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,14 +19,14 @@
 package org.digimead.lib.test
 
 import java.util.concurrent.{ ConcurrentHashMap, Exchanger, TimeUnit }
-import org.apache.log4j.{ ConsoleAppender, FileAppender, Layout, Level, PatternLayout }
-import org.apache.log4j.spi.LoggingEvent
+import org.apache.log4j.{ ConsoleAppender, EnhancedThrowableRenderer, FileAppender, Layout, Level, PatternLayout }
+import org.apache.log4j.spi.{ LoggingEvent, ThrowableRenderer, ThrowableRendererSupport }
 import org.apache.log4j.varia.NullAppender
 import org.hamcrest.{ BaseMatcher, Description }
 import org.mockito.{ ArgumentCaptor, Matchers, Mockito }
 import org.mockito.Mockito.{ spy, verify }
 import org.mockito.verification.VerificationMode
-import org.scalatest.{ BeforeAndAfter, BeforeAndAfterAllConfigMap, ConfigMap, Suite }
+import org.scalatest.{ BeforeAndAfter, BeforeAndAfterAllConfigMap, ConfigMap, Finders, Suite }
 import org.scalatest.mock.MockitoSugar
 import scala.collection.JavaConverters.mapAsScalaMapConverter
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -92,6 +92,14 @@ trait LoggingHelper extends Suite with BeforeAndAfter
     else
       root.addAppender(new NullAppender)
   }
+  /** Enable detailed throwable output for log4j. */
+  protected def enableDetailedThrowable() =
+    org.apache.log4j.Logger.getRootLogger.getLoggerRepository match {
+      case trs: ThrowableRendererSupport ⇒
+        trs.setThrowableRenderer(new LoggingHelper.DetailedThrowableRenderer)
+      case other ⇒
+        throw new IllegalStateException("Log4j LoggerRepository isn't ThrowableRendererSupport")
+    }
 
   /**
    * Mockito log captor.
@@ -149,5 +157,27 @@ object LoggingHelper {
   /** Log callback for LoggingHelper.logVerify. */
   class CaptureCallback(val f: LoggingEvent ⇒ Boolean, val exchanger: Exchanger[Null]) {
     def apply(event: LoggingEvent): Boolean = f(event)
+  }
+  /** Implementation of ThrowableRenderer with detailed stacktrace. */
+  class DetailedThrowableRenderer extends ThrowableRenderer {
+    /** Base renderer. */
+    val renderer = new EnhancedThrowableRenderer()
+
+    /**
+     * Render Throwable.
+     * @param t throwable, may not be null.
+     * @return String representation.
+     */
+    def doRender(throwable: Throwable): Array[String] = {
+      val header = renderer.doRender(throwable)
+      Option(throwable.getCause) match {
+        case Some(cause) ⇒
+          val footer = doRender(cause)
+          footer(0) = "Caused by: " + footer(0)
+          header ++ footer
+        case None ⇒
+          header
+      }
+    }
   }
 }
