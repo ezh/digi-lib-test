@@ -69,7 +69,7 @@ libraryDependencies ++= Seq(
     "org.scalatest" %% "scalatest" % "2.2.4"
       excludeAll(ExclusionRule("org.scala-lang", "scala-reflect"), ExclusionRule("org.scala-lang", "scala-actors")),
     "org.slf4j" % "slf4j-log4j12" % "1.7.12",
-    "org.digimead" %% "digi-lib" % "0.3.1.3" % "test"
+    "org.digimead" %% "digi-lib" % "0.3.1.4" % "test"
   )
 
 //

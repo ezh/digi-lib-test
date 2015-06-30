@@ -18,13 +18,12 @@
 
 package org.digimead.lib.test
 
-import scala.collection.JavaConversions._
-
-import org.scalatest.ConfigMap
-import org.scalatest.WordSpec
-import org.scalatest.Matchers
+import org.mockito.Mockito
+import org.scalatest.{ ConfigMap, Finders, Matchers, WordSpec }
+import org.scalatest.exceptions.TestFailedException
 import org.scalatest.mock.MockitoSugar
 import org.slf4j.LoggerFactory
+import scala.collection.JavaConversions.asScalaBuffer
 
 class LoggingHelperSpec extends WordSpec with LoggingHelper with Matchers with MockitoSugar {
   val log = LoggerFactory.getLogger(getClass)
@@ -35,6 +34,17 @@ class LoggingHelperSpec extends WordSpec with LoggingHelper with Matchers with M
         val enter = logCaptor.getAllValues().head
         enter.getLevel() should be(org.apache.log4j.Level.DEBUG)
         enter.getMessage.toString should be("mockito test interception")
+      }
+      withMockitoLogMatcher { log.debug("mockito test interception", new Throwable()) } {
+        case (org.apache.log4j.Level.DEBUG, "mockito test interception", Some(throwable)) ⇒ true
+      }
+      intercept[TestFailedException] {
+        withMockitoLogMatcher {
+          log.debug("mockito test interception", new Throwable())
+          log.warn("mockito test interception", new Throwable())
+        } {
+          case (org.apache.log4j.Level.DEBUG, "mockito test interception", Some(throwable)) ⇒ true
+        }(Mockito.atLeastOnce())
       }
     }
     "provides detailed description of throwable" in {

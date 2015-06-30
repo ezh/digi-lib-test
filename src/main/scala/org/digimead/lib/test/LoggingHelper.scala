@@ -28,12 +28,12 @@ import org.mockito.Mockito.{ spy, verify }
 import org.mockito.verification.VerificationMode
 import org.scalatest.{ BeforeAndAfter, BeforeAndAfterAllConfigMap, ConfigMap, Finders, Suite }
 import org.scalatest.mock.MockitoSugar
-import scala.collection.JavaConverters.mapAsScalaMapConverter
+import scala.collection.JavaConverters.{ asScalaBufferConverter, mapAsScalaMapConverter }
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait LoggingHelper extends Suite with BeforeAndAfter
-  with BeforeAndAfterAllConfigMap with MockitoSugar {
+    with BeforeAndAfterAllConfigMap with MockitoSugar {
   /** Mockito log intercepter */
   val testLogAppender = spy(new LoggingHelper.TestAppender)
   /** Minimum log level if logging enabled. */
@@ -104,17 +104,44 @@ trait LoggingHelper extends Suite with BeforeAndAfter
   /**
    * Mockito log captor.
    * @param a - test function with logging
-   * @param b - Fx that tests log entitioes
+   * @param b - Fx that tests log entities
    * @param option - mockito log options, for example
    *   'implicit val option = Mockito.atLeastOnce()' for multiple log entries
    */
-  def withMockitoLogCaptor[A, B](a: ⇒ A)(b: ArgumentCaptor[org.apache.log4j.spi.LoggingEvent] ⇒ B)(implicit option: VerificationMode = Mockito.timeout(0)) = {
+  def withMockitoLogCaptor[A, B](a: ⇒ A)(b: ArgumentCaptor[org.apache.log4j.spi.LoggingEvent] ⇒ B)(implicit option: VerificationMode = Mockito.timeout(0)): A = {
     Mockito.reset(testLogAppender)
     val logCaptor = ArgumentCaptor.forClass(classOf[org.apache.log4j.spi.LoggingEvent])
     val result = a
     verify(testLogAppender, option).doAppend(logCaptor.capture())
     b(logCaptor)
     result
+  }
+  /**
+   * Mockito log captor.
+   * @param a - test function with logging
+   * @param b - Fx that tests log entities (log level, log message, throwable)
+   * @param option - mockito log options, for example
+   *   'implicit val option = Mockito.atLeastOnce()' for multiple log entries
+   */
+  def withMockitoLogMatcher[A](a: ⇒ A)(b: PartialFunction[(Level, String, Option[String]), Boolean])(implicit option: VerificationMode = Mockito.timeout(0)): A = {
+    val logTest: ArgumentCaptor[org.apache.log4j.spi.LoggingEvent] ⇒ Unit = {
+      logCaptor ⇒
+        val default: PartialFunction[(Level, String, Option[String]), Boolean] =
+          { case (a, message, throwable) ⇒ false }
+        val unexpectedEvents = logCaptor.getAllValues().asScala.filter { e ⇒
+          !b.applyOrElse((e.getLevel, e.getMessage.toString(), Option(e.getThrowableStrRep).map(_.mkString("\n"))), default)
+        }
+        if (unexpectedEvents.nonEmpty) {
+          val messages = for { e ← unexpectedEvents }
+            yield s"${e.getLevel()}: ${e.getMessage()}" +
+            (Option(e.getThrowableStrRep).map(_.mkString("\n")) match {
+              case Some(throwable) ⇒ "\n" + throwable
+              case None ⇒ ""
+            })
+          fail(s"Unexpected log message detected.\n" + messages.mkString("\n"))
+        }
+    }
+    withMockitoLogCaptor(a)(logTest)(option)
   }
 }
 
